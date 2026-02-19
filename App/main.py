@@ -16,6 +16,10 @@ save_file = os.path.join(base_dir, '..', "Save/data.json")
 
 #Functions 
 def data_load():
+    """
+    Tries to load existing data in ../Save 
+    If nothing is there returns a basic template
+    """
     try: 
         with open(save_file, 'r', encoding='utf-8') as file:
             return json.load(file)
@@ -23,10 +27,16 @@ def data_load():
         return {'categories': ["Not finished", "Finished", "Planned"]}
 
 def save_data(data):
+    """
+    Saves the data in a json file in ../Save
+    """
     with open(save_file, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent = 2)
 
 def add_category():
+    """
+    Adds a category nothing more -_-
+    """
     category_name = category_entry.get().strip()
     if not category_name:
         return
@@ -36,6 +46,9 @@ def add_category():
     refresh_categories()
 
 def refresh_categories():
+    """
+    Refreshes the categories displayed on the left panel in the main window
+    """
     for widget in categories_frame.winfo_children():
         widget.destroy()
     for category in data["categories"]:
