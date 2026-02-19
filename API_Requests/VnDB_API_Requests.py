@@ -11,7 +11,12 @@ def search_vns(title):
     data = r.json()
     return data["results"]
 
+
+
+#test
+'''
 search_test = input("What would you like to search ?")
 s_results = search_vns(search_test)
 for vn in s_results:
     print(vn["title"], vn["id"], vn["image"])
+'''
