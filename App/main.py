@@ -52,24 +52,38 @@ def refresh_categories():
     for widget in categories_frame.winfo_children():
         widget.destroy()
     for category in data["categories"]:
-        btn = customtkinter.CTkButton(
+        button = customtkinter.CTkButton(
             master=categories_frame,
             text=category,
             anchor="w",
             fg_color="transparent",
             hover_color="#3a3a3a",
         )
-        btn.pack(fill="x", padx=8, pady=2)
+        button.pack(fill="x", padx=8, pady=2)
+
+def search_window_for_button():
+    """
+    This function is called when the Search a VN button is clicked on
+    Opens a search window where the user can search for Visual novels using VnDB API (///and add them to the current category(Feature not already implemented)) 
+    """
+    search_window = customtkinter.CTkToplevel(app)
+    search_window.title('Search a Visual Novel from VnDB database...')
+    search_window.geometry("600x450")
+    search_frame = customtkinter.CTkFrame(search_window)
+    search_frame.pack(fill="x", padx=10, pady=10)
+    entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...")
+    entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
+    #Not finished
 
 #App init
 app = customtkinter.CTk()
 app.geometry("1280x720")
-app.title("Vn Manager")
+app.title("VnManager")
 
 #Frame building
 search_frame = customtkinter.CTkFrame(master=app, width =800, height = 30, border_width=2, corner_radius=15, fg_color="#303030")
 categories_frame = customtkinter.CTkFrame(master=app, width = 230, border_width = 2, corner_radius = 8)
-frame3 = customtkinter.CTkFrame(master=app, border_width = 2, corner_radius = 8, fg_color="#44385c")
+frame3 = customtkinter.CTkFrame(master=app, border_width = 2, corner_radius = 8, fg_color="#1c1d1f")
 
 #logo_fetch
 logo_image = customtkinter.CTkImage(light_image=Image.open(logo_path), size = (30,30))
@@ -79,8 +93,10 @@ logo.place(x=90,y=5)
 #Buttons
 category_entry = customtkinter.CTkEntry(categories_frame, placeholder_text="New category...")
 category_entry.pack(padx=8, pady=(10, 4), fill="x")
-add_btn = customtkinter.CTkButton(categories_frame, text="+ Add", width=60, command=add_category)
-add_btn.pack(padx=8, pady=(0, 8), fill="x")
+category_add_button = customtkinter.CTkButton(categories_frame, text="+ Add", width=60, command=add_category)
+category_add_button.pack(padx=8, pady=(0, 8), fill="x")
+search_button = customtkinter.CTkButton(frame3, text = 'Search VN', command=search_window_for_button)
+search_button.pack(pady=5, fill='x', padx=(5,5))
 
 #Frame packs
 search_frame.pack(pady=3, fill='x', padx=(245,5))
