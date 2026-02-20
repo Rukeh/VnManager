@@ -7,6 +7,7 @@ import os
 import sys
 import json
 import re
+import threading
 
 #Path getter
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -76,43 +77,89 @@ def search_window_for_button():
     search_frame.pack(fill="x", padx=10, pady=10)
     entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...")
     entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
+    last_results = []
+
+    view_mode = tkinter.StringVar(value="list")
+    
     def search_vn_button():
-        """
-        *Only used inside the search window function 
-        Used when clicking on the search button in the novel search screen 
-        It calls the search_vns function that calls the vndb api to search for novels
-        """
         research = entry.get().strip()
         if not research:
             return
         api_data = search_vns(research)
+        last_results.clear()
+        last_results.extend(api_data)
+        render_results(api_data)
+    
+    def toggle_view():
+        if view_mode.get() == "list":
+            view_mode.set("grid")
+            toggle_button.configure(text="☰ List")
+        else:
+            view_mode.set("list")
+            toggle_button.configure(text="⊞ Grid")
+        if last_results:
+                render_results(last_results)
 
+    def render_results(api_data):
         for widget in search_frame_results.winfo_children():
             widget.destroy()
 
-        for vn in api_data :
-            year = (vn.get("released") or '?')[:4]
+        if view_mode.get() == "list":
+            for vn in api_data:
+                year = (vn["released"] or "?")[:4]
+                vn_card = customtkinter.CTkFrame(search_frame_results)
+                vn_card.pack(fill="x", pady=4, padx=4)
 
-            vn_card = customtkinter.CTkFrame(search_frame_results)
-            vn_card.pack(fill='x')
+                img_url = (vn['image']['url'] or {})
+                card_image = customtkinter.CTkLabel(vn_card, text="", width=150, height=200)
+                card_image.pack(side="left", padx=(8, 0), pady=8)
+                if img_url:
+                    def load_img(label=card_image, url=img_url):
+                        img = image_loader_url(url, size=(150, 200))
+                        if img:
+                            label.configure(image=img)
+                            label.image = img
+                    threading.Thread(target=load_img, daemon=True).start()
 
-            img_url = vn['image']['url']
-            if img_url:
-                image_ctk = image_loader_url(img_url, size=(150,200))
-                if image_ctk:
-                    card_image = customtkinter.CTkLabel(vn_card, image=image_ctk, text="")
-                    card_image.image = image_ctk
-                    card_image.pack(side='left', padx=(8,0), pady=8)
+                text_frame = customtkinter.CTkFrame(vn_card, fg_color="transparent")
+                text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
+                customtkinter.CTkLabel(text_frame, text=f"{vn['title']} ({year})", font=("Arial", 20, "bold"), anchor="w", wraplength=350).pack(fill="x", pady=(4, 4))
+                customtkinter.CTkLabel(text_frame, text=clean_description(vn.get("description")), font=("Arial", 13), anchor="w", wraplength=350, justify="left").pack(fill="x")
 
-                    text_frame = customtkinter.CTkFrame(vn_card, fg_color="transparent")
-                    text_frame.pack(side='left', fill='both', expand=True, padx=10, pady=8)
-                    customtkinter.CTkLabel(text_frame, text=f"{vn['title']} ({year})", font=("Arial", 20, 'bold'), anchor='w', wraplength=350).pack(fill='x', pady=(4, 4))
-                    customtkinter.CTkLabel(text_frame, text=clean_description(vn.get('description')), font=('Arial', 13), anchor='w', wraplength=350, justify='left').pack(fill='x')
+        else:
+            columns = 10
+            for index, vn in enumerate(api_data):
+                year = (vn.get("released") or "?")[:4]
+                row = index // columns
+                col = index % columns
 
-    do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
-    do_search_button.pack(side = 'right')
+                vn_card = customtkinter.CTkFrame(search_frame_results)
+                vn_card.grid(row=row, column=col, padx=8, pady=8, sticky="n")
+
+                img_url = (vn['image']['url'] or {})
+                card_image = customtkinter.CTkLabel(vn_card, text="", width=150, height=200)
+                card_image.pack(pady=(8, 4), padx=8)
+                if img_url:
+                    def load_img(label=card_image, url=img_url):
+                        img = image_loader_url(url, size=(130, 180))
+                        if img:
+                            label.configure(image=img)
+                            label.image = img
+                    threading.Thread(target=load_img, daemon=True).start()
+
+                customtkinter.CTkLabel(vn_card, text=vn["title"], font=("Arial", 12, "bold"), wraplength=130, justify="center").pack(padx=6)
+                customtkinter.CTkLabel(vn_card, text=year, font=("Arial", 11), text_color="gray").pack(pady=(0, 8))
+
+    toggle_button = customtkinter.CTkButton(search_frame, text="⊞ Grid", width=80, command=toggle_view)
+    toggle_button.pack(side="right", padx=(0, 8))
+
+    do_search_button = customtkinter.CTkButton(search_frame, text="Search", command=search_vn_button)
+    do_search_button.pack(side="right")
+
     search_frame_results = customtkinter.CTkScrollableFrame(search_window)
-    search_frame_results.pack(fill='both', expand=True)
+    search_frame_results.pack(fill="both", expand=True)
+
+    entry.bind("<Return>", lambda e: search_vn_button())
 
 def image_loader_url(url, size=(150,200)):
     """
@@ -121,12 +168,12 @@ def image_loader_url(url, size=(150,200)):
     -size = size of the returned image (argument 1 : width, argument 2 : height) default 150x200
     """
     try:
-        img_response = requests.get(url)
+        img_response = requests.get(url, timeout=5)
         img = Image.open(BytesIO(img_response.content))
         return customtkinter.CTkImage(img, size=size)
     except:
         return None
-
+        
 def clean_description(text):
     if not text:
         return "No description available."
