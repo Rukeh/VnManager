@@ -6,6 +6,7 @@ import customtkinter
 import os
 import sys
 import json
+import re
 
 #Path getter
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -76,6 +77,11 @@ def search_window_for_button():
     entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...")
     entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
     def search_vn_button():
+        """
+        *Only used inside the search window function 
+        Used when clicking on the search button in the novel search screen 
+        It calls the search_vns function that calls the vndb api to search for novels
+        """
         research = entry.get().strip()
         if not research:
             return
@@ -98,8 +104,10 @@ def search_window_for_button():
                     card_image.image = image_ctk
                     card_image.pack(side='left', padx=(8,0), pady=8)
 
-            customtkinter.CTkLabel(vn_card, text=vn['title'] + " " + year, font=("Arial", 30, 'bold'), anchor='w').pack(side='top', fill='x', padx=30)
-            customtkinter.CTkLabel(vn_card, text=vn['description'], font = ('Arial', 18, 'bold'), anchor='w').pack(fill='x', padx = 50)
+                    text_frame = customtkinter.CTkFrame(vn_card, fg_color="transparent")
+                    text_frame.pack(side='left', fill='both', expand=True, padx=10, pady=8)
+                    customtkinter.CTkLabel(text_frame, text=f"{vn['title']} ({year})", font=("Arial", 20, 'bold'), anchor='w', wraplength=350).pack(fill='x', pady=(4, 4))
+                    customtkinter.CTkLabel(text_frame, text=clean_description(vn.get('description')), font=('Arial', 13), anchor='w', wraplength=350, justify='left').pack(fill='x')
 
     do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
     do_search_button.pack(side = 'right')
@@ -107,12 +115,27 @@ def search_window_for_button():
     search_frame_results.pack(fill='both', expand=True)
 
 def image_loader_url(url, size=(150,200)):
+    """
+    Tries to load an image from an url 
+    -url = url of an image 
+    -size = size of the returned image (argument 1 : width, argument 2 : height) default 150x200
+    """
     try:
         img_response = requests.get(url)
         img = Image.open(BytesIO(img_response.content))
         return customtkinter.CTkImage(img, size=size)
     except:
         return None
+
+def clean_description(text):
+    if not text:
+        return "No description available."
+    text = re.sub(r'\[url=[^\]]*\](.*?)\[/url\]', r'\1', text, flags=re.DOTALL)    #Hopefully removes hyperlink markers
+    text = re.sub(r'\[/?[a-zA-Z][^\]]*\]', '', text)                               #(Created for the descriptions of novels may work elsewere)
+    text = text.strip()
+    if len(text) > 300:
+        text = text[:300].rsplit(' ', 1)[0] + '...'
+    return text
 
 #App init
 app = customtkinter.CTk()
