@@ -79,8 +79,9 @@ def search_window_for_button():
             return
         api_data = search_vns(research)
 
-        for vn in api_data:
-            print(vn["title"])
+        for widget in search_frame.winfo_children():
+            widget.destroy()
+            
     do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
     do_search_button.pack(side = 'right')
     search_frame_results = customtkinter.CTkScrollableFrame(search_frame)
