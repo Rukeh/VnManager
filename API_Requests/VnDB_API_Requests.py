@@ -5,7 +5,7 @@ def search_vns(title):
     payload = {
         "filters": ["search", "=", title],
         "fields": "id, title, alttitle, released, languages, platforms, image.url, length, description, rating",
-        "results" : 100
+        "results" : 10
     }
     r = requests.post(url = url, json = payload)
     data = r.json()
