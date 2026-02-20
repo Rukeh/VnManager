@@ -92,20 +92,21 @@ def search_window_for_button():
 
             img_url = vn['image']['url']
             if img_url:
-                image_ctk = image_loader_url(img_url, size=(120,180))
+                image_ctk = image_loader_url(img_url, size=(150,200))
                 if image_ctk:
                     card_image = customtkinter.CTkLabel(vn_card, image=image_ctk, text="")
                     card_image.image = image_ctk
                     card_image.pack(side='left', padx=(8,0), pady=8)
 
-            customtkinter.CTkLabel(vn_card, text=vn['title'] + " " + year, font=("Arial", 10, 'bold'), anchor='w').pack(fill='x')
+            customtkinter.CTkLabel(vn_card, text=vn['title'] + " " + year, font=("Arial", 30, 'bold'), anchor='w').pack(side='top', fill='x', padx=30)
+            customtkinter.CTkLabel(vn_card, text=vn['description'], font = ('Arial', 18, 'bold'), anchor='w').pack(fill='x', padx = 50)
 
     do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
     do_search_button.pack(side = 'right')
     search_frame_results = customtkinter.CTkScrollableFrame(search_window)
     search_frame_results.pack(fill='both', expand=True)
 
-def image_loader_url(url, size=(120,180)):
+def image_loader_url(url, size=(150,200)):
     try:
         img_response = requests.get(url)
         img = Image.open(BytesIO(img_response.content))
