@@ -73,7 +73,18 @@ def search_window_for_button():
     search_frame.pack(fill="x", padx=10, pady=10)
     entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...")
     entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
-    #Not finished
+    def search_vn_button():
+        research = entry.get().strip()
+        if not research:
+            return
+        api_data = search_vns(research)
+
+        for vn in api_data:
+            print(vn["title"])
+    do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
+    do_search_button.pack(side = 'right')
+    search_frame_results = customtkinter.CTkScrollableFrame(search_frame)
+    search_frame_results.pack(side = 'bottom', fill='both', expend=True)
 
 #App init
 app = customtkinter.CTk()
