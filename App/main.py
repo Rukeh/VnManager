@@ -1,4 +1,5 @@
 from PIL import Image
+from io import BytesIO
 import tkinter 
 import customtkinter 
 import os
@@ -79,13 +80,21 @@ def search_window_for_button():
             return
         api_data = search_vns(research)
 
-        for widget in search_frame.winfo_children():
+        for widget in search_frame_results.winfo_children():
             widget.destroy()
-            
+
+        for vn in api_data :
+            year = vn.get("released") or '?'
+
+            vn_card = customtkinter.CTkFrame(search_frame_results)
+            vn_card.pack(fill='x')
+
+            customtkinter.CTkLabel(vn_card, text=vn['title'] + " " + year, font=("Arial", 10, 'bold'), anchor='w').pack(fill='x')
+
     do_search_button = customtkinter.CTkButton(master = search_frame, command=search_vn_button, text= 'Search')
     do_search_button.pack(side = 'right')
-    search_frame_results = customtkinter.CTkScrollableFrame(search_frame)
-    search_frame_results.pack(side = 'bottom', fill='both', expend=True)
+    search_frame_results = customtkinter.CTkScrollableFrame(search_window)
+    search_frame_results.pack(fill='both', expand=True)
 
 #App init
 app = customtkinter.CTk()
