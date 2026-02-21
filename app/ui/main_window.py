@@ -14,7 +14,7 @@ _DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"]}
 
 def load_data() -> dict:
     """
-    Loads save data from ../data/save.json , returning defaults values if the file is missing. (exemple case : first time users having no save files already)
+    Loads save data from ../data/save.json , returning defaults values if the file is missing. (eg : first-time users with no save file yet)
     """
     try:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
@@ -41,6 +41,8 @@ def run() -> None:
 
     data = load_data()
 
+    selected_category = [None]
+
     search_bar_frame = customtkinter.CTkFrame(
         master=app, width=800, height=30,
         border_width=2, corner_radius=15, fg_color="#303030",
@@ -52,11 +54,30 @@ def run() -> None:
         logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
         customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=90, y=5)
 
+    #Left panel (Categories)
+
     category_entry = customtkinter.CTkEntry(left_panel, placeholder_text="New category...")
     category_entry.pack(padx=8, pady=(10, 4), fill="x")
 
     categories_scroll = customtkinter.CTkScrollableFrame(left_panel)
     categories_scroll.pack(fill="both", expand=True, padx=4, pady=4)
+
+    #Rght panel to display the vns of the category
+
+    customtkinter.CTkButton(
+        right_panel,
+        text="Search VN",
+        command=lambda: open_search_window(app),
+    ).pack(pady=5, fill="x", padx=5)
+    
+    vn_panel = customtkinter.CTkFrame(right_panel, fg_color='transparent')
+    vn_panel.pack(fill='x', padx=8, pady=(8,8))
+
+    right_title = customtkinter.CTkLabel(vn_panel, text='Select a category', font = ("Arial", 16, "bold"), anchor="w")
+    right_title.pack(side='left', fill='x', expand = True)
+
+    vns_scroll = customtkinter.CTkScrollableFrame(vn_panel, fg_color="transparent")
+    vns_scroll.pack(fill="both", expand=True, padx=4, pady=8)
 
     def refresh_categories() -> None:
         for widget in categories_scroll.winfo_children():
@@ -102,12 +123,6 @@ def run() -> None:
     customtkinter.CTkButton(
         left_panel, text="+ Add", width=60, command=add_category,
     ).pack(padx=8, pady=(0, 8), fill="x")
-
-    customtkinter.CTkButton(
-        right_panel,
-        text="Search VN",
-        command=lambda: open_search_window(app),
-    ).pack(pady=5, fill="x", padx=5)
 
     def delete_category(name) -> None:
         """
