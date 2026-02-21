@@ -62,12 +62,12 @@ def run() -> None:
     categories_scroll = customtkinter.CTkScrollableFrame(left_panel)
     categories_scroll.pack(fill="both", expand=True, padx=4, pady=4)
 
-    #Rght panel to display the vns of the category
+    #Right panel to display the vns of the category
 
     customtkinter.CTkButton(
         right_panel,
         text="Search VN",
-        command=lambda: open_search_window(app),
+        command=lambda: open_search_window(app, data),
     ).pack(pady=5, fill="x", padx=5)
     
     vn_panel = customtkinter.CTkFrame(right_panel, fg_color='transparent')
@@ -79,6 +79,92 @@ def run() -> None:
     vns_scroll = customtkinter.CTkScrollableFrame(vn_panel, fg_color="transparent")
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=8)
 
+    #Renders for the vn panel
+    
+    def _async_load_image(label, url, size):
+        img = load_image_from_url(url, size=size)
+        if img and label.winfo_exists():
+            label.after(0, lambda: (label.configure(image=img), setattr(label, "_img_ref", img)))  
+    
+    
+    def refresh_right_panel() -> None:
+        """
+        Re-renders the VN list for the currently selected category
+        """
+        for widget in vns_scroll.winfo_children():
+            widget.destroy()
+
+        cat = selected_category[0]
+        if cat is None:
+            return
+
+        right_title.configure(text=cat)
+        vns = data["vns"].get(cat, [])
+
+        if not vns:
+            customtkinter.CTkLabel(
+                vns_scroll,
+                text="No VNs in this category yet\nSearch for one and add it",
+                font=("Arial", 13),
+                text_color="gray",
+            ).pack(pady=40)
+            return
+
+        for vn in vns:
+            year = (vn.get("released") or "?")[:4]
+            img_url = (vn.get("image") or {}).get("url", "")
+
+            card = customtkinter.CTkFrame(vns_scroll)
+            card.pack(fill="x", pady=4, padx=4)
+
+            img_label = customtkinter.CTkLabel(card, text="", width=90, height=120)
+            img_label.pack(side="left", padx=(8, 0), pady=8)
+            if img_url:
+                _executor.submit(_async_load_image, img_label, img_url, (90, 120))
+
+            text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
+            text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
+
+            customtkinter.CTkLabel(
+                text_frame,
+                text=f"{vn['title']} ({year})",
+                font=("Arial", 15, "bold"),
+                anchor="w",
+                wraplength=500,
+            ).pack(fill="x")
+
+            customtkinter.CTkLabel(
+                text_frame,
+                text=clean_description(vn.get("description")),
+                font=("Arial", 12),
+                anchor="w",
+                wraplength=500,
+                justify="left",
+                text_color="gray",
+            ).pack(fill="x", pady=(4, 0))
+
+            customtkinter.CTkButton(
+                card,
+                text="✕",
+                width=28,
+                height=28,
+                fg_color="transparent",
+                hover_color="#5a2020",
+                text_color="#cc4444",
+                command=lambda v=vn: remove_vn(cat, v),
+            ).pack(side="right", anchor="n", padx=(0, 6), pady=6)    
+    
+    def remove_vn(category: str, vn: dict) -> None:
+        data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
+        save_data(data)
+        refresh_right_panel()
+
+    def select_category(name: str) -> None:
+        selected_category[0] = name
+        refresh_right_panel()  
+
+    #Left panel   
+    
     def refresh_categories() -> None:
         for widget in categories_scroll.winfo_children():
             widget.destroy()
@@ -107,13 +193,13 @@ def run() -> None:
 
     def add_category() -> None:
         """
-        Adds a category, 
-        fetches the name from the entry attached to it 
+        Adds a category,
+        fetches the name from the entry attached to it
         -> attach to a button
         Stores it inside save data and refreshes categories to display the changes
         """
         name = category_entry.get().strip()
-        if not name:
+        if not name or name in data["categories"]:
             return
         data["categories"].append(name)
         save_data(data)
@@ -126,13 +212,19 @@ def run() -> None:
 
     def delete_category(name) -> None:
         """
-        Delete a category 
-        This function is called by a button ()
+        Delete a category
+        This function is called by a button
         The button role is to store the name of the category then send it to this function
         """
         if name in data['categories']:
             data['categories'].remove(name)
+            data['vns'].pop(name, None)
             save_data(data)
+            if selected_category[0] == name:
+                selected_category[0] = None
+                right_title.configure(text="Select a category")
+                for widget in vns_scroll.winfo_children():
+                    widget.destroy()
             refresh_categories()
 
     search_bar_frame.pack(pady=3, fill="x", padx=(245, 5))

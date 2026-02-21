@@ -6,7 +6,7 @@ from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
 from app.utils.image import load_image_from_url, _executor
 
-def open_search_window(parent: customtkinter.CTk) -> None:
+def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
     Opens a Toplevel window that lets the user search VnDB and browse results
     in either list or grid view.
@@ -33,6 +33,44 @@ def open_search_window(parent: customtkinter.CTk) -> None:
         img = load_image_from_url(url, size=size)
         if img and label.winfo_exists():
             label.after(0, lambda: (label.configure(image=img), setattr(label, 'image', img)))
+
+    def _add_to_category(vn: dict) -> None:
+        """Shows a small popup to pick a category, then saves the VN."""
+        categories = data.get("categories", [])
+        if not categories:
+            popup = customtkinter.CTkToplevel(window)
+            popup.title("No categories")
+            popup.geometry("280x80")
+            popup.after(50, lambda: popup.lift())
+            customtkinter.CTkLabel(popup, text="No categories yet.\nAdd one in the main window first.").pack(pady=12)
+            customtkinter.CTkButton(popup, text="OK", width=80, command=popup.destroy).pack()
+            return
+
+        popup = customtkinter.CTkToplevel(window)
+        popup.title("Add to category")
+        popup.geometry("280x70")
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(popup, text="Category:").pack(side="left", padx=(12, 6), pady=18)
+
+        var = tkinter.StringVar(value=categories[0])
+        customtkinter.CTkOptionMenu(popup, values=categories, variable=var).pack(side="left", padx=(0, 6))
+
+        def confirm():
+            cat = var.get()
+            vns_in_cat = data["vns"].setdefault(cat, [])
+            if not any(v["id"] == vn["id"] for v in vns_in_cat):
+                vns_in_cat.append(vn)
+                from app.ui.main_window import save_data
+                save_data(data)
+                if on_vn_added:
+                    on_vn_added()
+            popup.destroy()
+
+        customtkinter.CTkButton(popup, text="Add", width=60, command=confirm).pack(side="left")
+
 
     def render_results(api_data: list) -> None:
         for widget in results_frame.winfo_children():
@@ -75,6 +113,13 @@ def open_search_window(parent: customtkinter.CTk) -> None:
                 wraplength=350,
                 justify="left",
             ).pack(fill="x")
+
+            customtkinter.CTkButton(
+                text_frame,
+                text='+',
+                width = 160,
+                command = lambda v=vn: _add_to_category
+            ).pack(anchor='w', pady=(8,0))
 
     def _render_grid(api_data: list) -> None:
         
