@@ -36,9 +36,9 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     # ── Helpers ───────────────────────────────────────────────────────────────
     def _async_load_image(label: customtkinter.CTkLabel, url: str, size: tuple) -> None:
         img = load_image_from_url(url, size=size)
-        if img:
+        if img and label.winfo_exists():
             label.configure(image=img)
-            label.image = img  # prevent GC
+            label.image = img 
 
     def render_results(api_data: list) -> None:
         for widget in results_frame.winfo_children():
