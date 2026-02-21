@@ -40,6 +40,7 @@ def save_data(data):
 def add_category():
     """
     Adds a category nothing more -_-
+    Usable via a button
     """
     category_name = category_entry.get().strip()
     if not category_name:
