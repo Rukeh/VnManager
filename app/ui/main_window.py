@@ -56,7 +56,7 @@ def run() -> None:
         logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
         customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=90, y=5)
 
-    #Left panel (Categories)
+    # Left panel (Categories)
 
     category_entry = customtkinter.CTkEntry(left_panel, placeholder_text="New category...")
     category_entry.pack(padx=8, pady=(10, 4), fill="x")
@@ -64,31 +64,31 @@ def run() -> None:
     categories_scroll = customtkinter.CTkScrollableFrame(left_panel)
     categories_scroll.pack(fill="both", expand=True, padx=4, pady=4)
 
-    #Right panel to display the vns of the category
+    right_title = customtkinter.CTkLabel(
+        right_panel,
+        text="Select a category",
+        font=("Arial", 18, "bold"),
+        anchor="center",
+    )
+    right_title.pack(fill="x", padx=10, pady=(12, 6))
 
     customtkinter.CTkButton(
         right_panel,
         text="Search VN",
         command=lambda: open_search_window(app, data, on_vn_added=refresh_right_panel),
-    ).pack(pady=5, fill="x", padx=5)
-    
-    vn_panel = customtkinter.CTkFrame(right_panel, fg_color='transparent')
-    vn_panel.pack(fill='x', padx=8, pady=(8,8))
+    ).pack(pady=(0, 8), fill="x", padx=8)
 
-    right_title = customtkinter.CTkLabel(vn_panel, text='Select a category', font = ("Arial", 16, "bold"), anchor="w")
-    right_title.pack(side='left', fill='x', expand = True)
+    vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent")
+    vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
 
-    vns_scroll = customtkinter.CTkScrollableFrame(vn_panel, fg_color="transparent")
-    vns_scroll.pack(fill="both", expand=True, padx=4, pady=8)
+    # Renders for the vn panel
 
-    #Renders for the vn panel
-    
     def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size)
         if img and label.winfo_exists():
-            label.after(0, lambda: (label.configure(image=img), setattr(label, "_img_ref", img)))  
-    
-    
+            label.after(0, lambda: (label.configure(image=img), setattr(label, "_img_ref", img)))
+
+
     def refresh_right_panel() -> None:
         """
         Re-renders the VN list for the currently selected category
@@ -154,8 +154,8 @@ def run() -> None:
                 hover_color="#5a2020",
                 text_color="#cc4444",
                 command=lambda v=vn: remove_vn(cat, v),
-            ).pack(side="right", anchor="n", padx=(0, 6), pady=6)    
-    
+            ).pack(side="right", anchor="n", padx=(0, 6), pady=6)
+
     def remove_vn(category: str, vn: dict) -> None:
         data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
         save_data(data)
@@ -163,10 +163,10 @@ def run() -> None:
 
     def select_category(name: str) -> None:
         selected_category[0] = name
-        refresh_right_panel()  
+        refresh_right_panel()
 
-    #Left panel   
-    
+    # Left panel
+
     def refresh_categories() -> None:
         for widget in categories_scroll.winfo_children():
             widget.destroy()
@@ -236,5 +236,3 @@ def run() -> None:
 
     refresh_categories()
     app.mainloop()
-
-    
