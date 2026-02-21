@@ -13,7 +13,9 @@ _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 _DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"]}
 
 def load_data() -> dict:
-    """Loads save data from ../data/save.json , returning defaults values if the file is missing. (exemple case : first time users having no save files already)"""
+    """
+    Loads save data from ../data/save.json , returning defaults values if the file is missing. (exemple case : first time users having no save files already)
+    """
     try:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -22,13 +24,17 @@ def load_data() -> dict:
 
 
 def save_data(data: dict) -> None:
-    """Saves data to the save file."""
+    """
+    Saves data to the save file
+    """
     os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
     with open(_SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def run() -> None:
-    """Builds and starts the main application window."""
+    """
+    Builds and starts the main application window
+    """
     app = customtkinter.CTk()
     app.geometry("1280x720")
     app.title("VnManager")
@@ -79,6 +85,12 @@ def run() -> None:
             ).pack(side="right", padx=(2, 4))
 
     def add_category() -> None:
+        """
+        Adds a category, 
+        fetches the name from the entry attached to it 
+        -> attach to a button
+        Stores it inside save data and refreshes categories to display the changes
+        """
         name = category_entry.get().strip()
         if not name:
             return
@@ -97,7 +109,12 @@ def run() -> None:
         command=lambda: open_search_window(app),
     ).pack(pady=5, fill="x", padx=5)
 
-    def delete_category(name):
+    def delete_category(name) -> None:
+        """
+        Delete a category 
+        This function is called by a button ()
+        The button role is to store the name of the category then send it to this function
+        """
         if name in data['categories']:
             data['categories'].remove(name)
             save_data(data)

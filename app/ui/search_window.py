@@ -20,7 +20,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     top_bar = customtkinter.CTkFrame(window)
     top_bar.pack(fill="x", padx=10, pady=10)
 
-    entry = customtkinter.CTkEntry(top_bar, placeholder_text="Search a VN...")
+    entry = customtkinter.CTkEntry(top_bar, placeholder_text="Search a VN...  (Tip : You can press ENTER to search)")
     entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
 
     last_results: list = []
