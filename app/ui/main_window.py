@@ -12,7 +12,7 @@ _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 _SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
 _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 
-_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"]}
+_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}}
 
 def load_data() -> dict:
     """

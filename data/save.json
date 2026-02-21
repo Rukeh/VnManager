@@ -2,46 +2,5 @@
   "categories": [
     "test"
   ],
-  "vns": {
-    "test": [
-      {
-        "alttitle": "月姫",
-        "description": "This story is about a young boy named [url=/c72]Toono Shiki[/url] who, after experiencing a traumatic accident, wakes up in the hospital with the ability to see lines and cracks in every surface and being. These lines, when traced with any sharp or blunt edge, will be permanently cut. As he is forced to see these lines everywhere, Shiki is distraught until he meets a mage girl who gives him glasses that allow him to live a normal life.\n\nYears later, after living in a relative's home, the death of his father has him summoned back to the mansion he left years ago. There he must learn to live with his younger sister and two maid girls. \n\nOne day Shiki's life takes a turn for the worse when, on the way to school, he meets a blonde woman and he's overcome with the urge to kill her.",
-        "id": "v7",
-        "image": {
-          "url": "https://t.vndb.org/cv/48/90048.jpg"
-        },
-        "languages": [
-          "en",
-          "es",
-          "fr",
-          "it",
-          "ja",
-          "ko",
-          "pt-br",
-          "ru",
-          "vi",
-          "zh-Hans",
-          "zh-Hant"
-        ],
-        "length": 4,
-        "platforms": [
-          "win",
-          "lin",
-          "mac",
-          "ios",
-          "and",
-          "gba",
-          "psp",
-          "psv",
-          "swi",
-          "vnd",
-          "web"
-        ],
-        "rating": 81.8,
-        "released": "2000-08-11",
-        "title": "Tsukihime"
-      }
-    ]
-  }
+  "vns": {}
 }
