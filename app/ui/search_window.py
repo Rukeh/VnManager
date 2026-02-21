@@ -6,9 +6,6 @@ from app.api.vndb import search_vns
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
 
-_GRID_COLUMNS = 10
-
-
 def open_search_window(parent: customtkinter.CTk) -> None:
     """
     Opens a Toplevel window that lets the user search VnDB and browse results
@@ -17,23 +14,21 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     window = customtkinter.CTkToplevel(parent)
     window.title("Search a Visual Novel from VnDB database...")
     window.geometry("600x450")
+    window.after(100, lambda: window.lift())
+    window.after(100, lambda: window.focus_force())
 
-    # ── Top bar ──────────────────────────────────────────────────────────────
     top_bar = customtkinter.CTkFrame(window)
     top_bar.pack(fill="x", padx=10, pady=10)
 
     entry = customtkinter.CTkEntry(top_bar, placeholder_text="Search a VN...")
     entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
 
-    # ── State ─────────────────────────────────────────────────────────────────
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
 
-    # ── Results area ──────────────────────────────────────────────────────────
     results_frame = customtkinter.CTkScrollableFrame(window)
     results_frame.pack(fill="both", expand=True)
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
     def _async_load_image(label: customtkinter.CTkLabel, url: str, size: tuple) -> None:
         img = load_image_from_url(url, size=size)
         if img and label.winfo_exists():
@@ -87,10 +82,15 @@ def open_search_window(parent: customtkinter.CTk) -> None:
             ).pack(fill="x")
 
     def _render_grid(api_data: list) -> None:
+        
+        card_width = 166
+        window_width = window.winfo_width()
+        columns = max(1, window_width // card_width)
+        
         for index, vn in enumerate(api_data):
             year = (vn.get("released") or "?")[:4]
             img_url = (vn["image"] or {}).get("url", "")
-            row, col = divmod(index, _GRID_COLUMNS)
+            row, col = divmod(index, columns)
 
             card = customtkinter.CTkFrame(results_frame)
             card.grid(row=row, column=col, padx=8, pady=8, sticky="n")
@@ -100,12 +100,11 @@ def open_search_window(parent: customtkinter.CTk) -> None:
             if img_url:
                 threading.Thread(
                     target=_async_load_image,
-                    args=(img_label, img_url, (130, 180)),
+                    args=(img_label, img_url, (150, 200)),
                     daemon=True,
                 ).start()
 
-            customtkinter.CTkLabel(
-                card,
+            customtkinter.CTkLabel(card,
                 text=vn["title"],
                 font=("Arial", 12, "bold"),
                 wraplength=130,
@@ -119,7 +118,6 @@ def open_search_window(parent: customtkinter.CTk) -> None:
                 text_color="gray",
             ).pack(pady=(0, 8))
 
-    # ── Actions ───────────────────────────────────────────────────────────────
     def do_search() -> None:
         query = entry.get().strip()
         if not query:
@@ -139,11 +137,10 @@ def open_search_window(parent: customtkinter.CTk) -> None:
         if last_results:
             render_results(last_results)
 
-    # ── Top-bar buttons (packed after helpers are defined) ────────────────────
     toggle_btn = customtkinter.CTkButton(top_bar, text="⊞ Grid", width=80, command=toggle_view)
     toggle_btn.pack(side="right", padx=(0, 8))
 
     search_btn = customtkinter.CTkButton(top_bar, text="Search", command=do_search)
     search_btn.pack(side="right")
 
-    entry.bind("<Return>", lambda _e: do_search())
+    entry.bind("<Return>", do_search())
