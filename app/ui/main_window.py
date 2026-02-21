@@ -13,7 +13,7 @@ _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 _DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"]}
 
 def load_data() -> dict:
-    """Loads save data from disk, returning defaults if the file is missing."""
+    """Loads save data from ../data/save.json , returning defaults values if the file is missing. (exemple case : first time users having no save files already)"""
     try:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -22,7 +22,7 @@ def load_data() -> dict:
 
 
 def save_data(data: dict) -> None:
-    """Persists data to the save file."""
+    """Saves data to the save file."""
     os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
     with open(_SAVE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
