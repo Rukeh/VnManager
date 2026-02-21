@@ -135,6 +135,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     search_btn.pack(side="right")
 
     _resize_job = None
+    _last_size = [0, 0]
 
     def _on_resize(event):
         nonlocal _resize_job
@@ -142,6 +143,10 @@ def open_search_window(parent: customtkinter.CTk) -> None:
             return
         if view_mode.get() != "grid" or not last_results:
             return
+        new_size = [window.winfo_width(), window.winfo_height()]
+        if new_size == _last_size:
+            return
+        _last_size[:] = new_size
         if _resize_job:
             window.after_cancel(_resize_job)
         _resize_job = window.after(150, lambda: render_results(last_results))
