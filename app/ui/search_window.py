@@ -78,7 +78,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
 
     def _render_grid(api_data: list) -> None:
         
-        card_width = 186
+        card_width = 270
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
         
