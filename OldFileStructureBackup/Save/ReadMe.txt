@@ -1,1 +1,0 @@
-This is where your save file is located, if you know what you are doing you can edit it from the json file in this folder and the changes will import to the app (IF YOU DONT KNOW WHAT YOU ARE DOING DON'T EDIT THE .JSON FILE !!!)
