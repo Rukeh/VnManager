@@ -1,10 +1,10 @@
-import threading
 import tkinter
 import customtkinter
 
 from app.api.vndb import search_vns
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
+from app.utils.image import load_image_from_url, _executor
 
 def open_search_window(parent: customtkinter.CTk) -> None:
     """
@@ -29,11 +29,10 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     results_frame = customtkinter.CTkScrollableFrame(window)
     results_frame.pack(fill="both", expand=True)
 
-    def _async_load_image(label: customtkinter.CTkLabel, url: str, size: tuple) -> None:
+    def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size)
         if img and label.winfo_exists():
-            label.configure(image=img)
-            label.image = img 
+            label.after(0, lambda: (label.configure(image=img), setattr(label, 'image', img)))
 
     def render_results(api_data: list) -> None:
         for widget in results_frame.winfo_children():
@@ -55,11 +54,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
             img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
             img_label.pack(side="left", padx=(8, 0), pady=8)
             if img_url:
-                threading.Thread(
-                    target=_async_load_image,
-                    args=(img_label, img_url, (150, 200)),
-                    daemon=True,
-                ).start()
+                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
 
             text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
@@ -98,11 +93,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
             img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
             img_label.pack(pady=(8, 4), padx=8)
             if img_url:
-                threading.Thread(
-                    target=_async_load_image,
-                    args=(img_label, img_url, (150, 200)),
-                    daemon=True,
-                ).start()
+                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
 
             customtkinter.CTkLabel(card,
                 text=vn["title"],
