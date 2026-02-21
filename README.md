@@ -1,4 +1,4 @@
-# VnManager
+# VnManager (NOT FINISHED AND NOT WORKING AS OF 21/02/2026)
 
 A desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https://api.vndb.org/kana).
 
