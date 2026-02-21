@@ -77,7 +77,7 @@ def run() -> None:
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
-            
+
     def add_category() -> None:
         name = category_entry.get().strip()
         if not name:
@@ -97,6 +97,12 @@ def run() -> None:
         command=lambda: open_search_window(app),
     ).pack(pady=5, fill="x", padx=5)
 
+    def delete_category(name):
+        if name in data['categories']:
+            data['categories'].remove(name)
+            save_data(data)
+            refresh_categories()
+
     search_bar_frame.pack(pady=3, fill="x", padx=(245, 5))
     left_panel.pack(side="left", fill="y", padx=5, pady=5)
     right_panel.pack(side="right", fill="both", pady=5, padx=5, expand=True)
@@ -104,9 +110,4 @@ def run() -> None:
     refresh_categories()
     app.mainloop()
 
-    def delete_category(name):
-        if name in data['categories']:
-            data['categories'].remove(name)
-            save_data(data)
-            refresh_categories()
     
