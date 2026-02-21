@@ -31,8 +31,12 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size)
-        if img and label.winfo_exists():
-            label.after(0, lambda: (label.configure(image=img), setattr(label, 'image', img)))
+        if img:
+            def _apply():
+                if label.winfo_exists():
+                    label.configure(image=img)
+                    label.image = img
+            label.after(0, _apply)
 
     def _add_to_category(vn: dict) -> None:
         """Shows a small popup to pick a category, then saves the VN."""

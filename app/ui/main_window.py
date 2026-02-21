@@ -54,7 +54,7 @@ def run() -> None:
 
     if os.path.exists(_LOGO_PATH):
         logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
-        customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=90, y=5)
+        customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=108, y=5)
 
     # Left panel (Categories)
 
@@ -85,8 +85,12 @@ def run() -> None:
 
     def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size)
-        if img and label.winfo_exists():
-            label.after(0, lambda: (label.configure(image=img), setattr(label, "_img_ref", img)))
+        if img:
+            def _apply():
+                if label.winfo_exists():
+                    label.configure(image=img)
+                    label.image = img
+            label.after(0, _apply)
 
 
     def refresh_right_panel() -> None:
@@ -122,7 +126,7 @@ def run() -> None:
             img_label = customtkinter.CTkLabel(card, text="", width=90, height=120)
             img_label.pack(side="left", padx=(8, 0), pady=8)
             if img_url:
-                _executor.submit(_async_load_image, img_label, img_url, (90, 120))
+                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
 
             text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
