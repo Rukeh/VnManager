@@ -143,4 +143,4 @@ def open_search_window(parent: customtkinter.CTk) -> None:
     search_btn = customtkinter.CTkButton(top_bar, text="Search", command=do_search)
     search_btn.pack(side="right")
 
-    entry.bind("<Return>", do_search())
+    entry.bind("<Return>", lambda _e: do_search())
