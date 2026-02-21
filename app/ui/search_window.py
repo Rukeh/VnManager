@@ -118,7 +118,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 text_frame,
                 text='+',
                 width = 160,
-                command = lambda v=vn: _add_to_category
+                command = lambda v=vn: _add_to_category(v)
             ).pack(anchor='w', pady=(8,0))
 
     def _render_grid(api_data: list) -> None:
@@ -153,6 +153,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 font=("Arial", 11),
                 text_color="gray",
             ).pack(pady=(0, 8))
+
+            customtkinter.CTkButton(
+                card,
+                text="＋ Add",
+                width=100,
+                command=lambda v=vn: _add_to_category(v),
+            ).pack(pady=(0, 8))            
 
     def do_search() -> None:
         query = entry.get().strip()

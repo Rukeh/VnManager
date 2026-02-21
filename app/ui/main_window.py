@@ -5,6 +5,8 @@ import customtkinter
 from PIL import Image
 
 from app.ui.search_window import open_search_window
+from app.utils.image import load_image_from_url, _executor
+from app.utils.text import clean_description
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
@@ -67,7 +69,7 @@ def run() -> None:
     customtkinter.CTkButton(
         right_panel,
         text="Search VN",
-        command=lambda: open_search_window(app, data),
+        command=lambda: open_search_window(app, data, on_vn_added=refresh_right_panel),
     ).pack(pady=5, fill="x", padx=5)
     
     vn_panel = customtkinter.CTkFrame(right_panel, fg_color='transparent')
@@ -178,6 +180,7 @@ def run() -> None:
                 anchor="w",
                 fg_color="transparent",
                 hover_color="#3a3a3a",
+                command=lambda c=category: select_category(c)
             ).pack(side="left", fill="x", expand=True, padx=(8, 0))
 
             customtkinter.CTkButton(
