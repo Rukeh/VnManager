@@ -83,7 +83,7 @@ def open_search_window(parent: customtkinter.CTk) -> None:
 
     def _render_grid(api_data: list) -> None:
         
-        card_width = 166
+        card_width = 186
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
         
@@ -142,5 +142,19 @@ def open_search_window(parent: customtkinter.CTk) -> None:
 
     search_btn = customtkinter.CTkButton(top_bar, text="Search", command=do_search)
     search_btn.pack(side="right")
+
+    _resize_job = None
+
+    def _on_resize(event):
+        nonlocal _resize_job
+        if event.widget != window:
+            return
+        if view_mode.get() != "grid" or not last_results:
+            return
+        if _resize_job:
+            window.after_cancel(_resize_job)
+        _resize_job = window.after(150, lambda: render_results(last_results))
+
+    window.bind("<Configure>", _on_resize)
 
     entry.bind("<Return>", lambda _e: do_search())
