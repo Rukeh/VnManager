@@ -56,14 +56,28 @@ def run() -> None:
         for widget in categories_scroll.winfo_children():
             widget.destroy()
         for category in data["categories"]:
+            row_frame = customtkinter.CTkFrame(categories_scroll, fg_color="transparent")
+            row_frame.pack(fill="x", pady=2)
+
             customtkinter.CTkButton(
-                master=categories_scroll,
+                master=row_frame,
                 text=category,
                 anchor="w",
                 fg_color="transparent",
                 hover_color="#3a3a3a",
-            ).pack(fill="x", padx=8, pady=2)
+            ).pack(side="left", fill="x", expand=True, padx=(8, 0))
 
+            customtkinter.CTkButton(
+                master=row_frame,
+                text="✕",
+                width=28,
+                height=28,
+                fg_color="transparent",
+                hover_color="#5a2020",
+                text_color="#cc4444",
+                command=lambda c=category: delete_category(c),
+            ).pack(side="right", padx=(2, 4))
+            
     def add_category() -> None:
         name = category_entry.get().strip()
         if not name:
@@ -89,3 +103,10 @@ def run() -> None:
 
     refresh_categories()
     app.mainloop()
+
+    def delete_category(name):
+        if name in data['categories']:
+            data['categories'].remove(name)
+            save_data(data)
+            refresh_categories()
+    
