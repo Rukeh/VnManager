@@ -34,7 +34,7 @@ sudo pacman -S python python-pip
 sudo pacman -S tk
 
 # 3. Clone the repository
-git clone https://github.com/youruser/VnManager.git
+git clone https://github.com/Rukeh/VnManager.git
 cd VnManager
 
 # 4. (Recommended) Create a virtual environment
@@ -62,7 +62,7 @@ python main.py
 #    Make sure to check "Add Python to PATH" during installation
 
 # 2. Clone the repository (requires Git — https://git-scm.com/)
-git clone https://github.com/youruser/VnManager.git
+git clone https://github.com/Rukeh/VnManager.git
 cd VnManager
 
 # 3. (Recommended) Create a virtual environment
