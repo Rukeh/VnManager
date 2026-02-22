@@ -9,10 +9,8 @@ A desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https:/
 ## Features
 
 - **Search VnDB** — Search the VNDB database by title and browse up to 50 results
-- **List & Grid view** — Toggle between a detailed list view (with cover art and description) and a compact grid view; the grid reflows automatically when you resize the window
-- **Cover art** — Cover images are fetched asynchronously so the UI stays responsive while images load
-- **Custom categories** — Create, rename and delete your own categories (e.g. *Playing*, *Finished*, *Planned*)
-- **Add / Remove VNs** — Add any search result to a category of your choice, or remove it with one click
+- **Custom categories** — Create, rename and delete your own categories (e.g. *Playing*, *Finished*, *Planned* (by default))
+- **Add / Remove VNs** — Add any search result to a category of your choice
 - **Persistent save** — Your library is saved to `data/save.json` automatically after every change
 
 ---
@@ -24,8 +22,6 @@ A desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https:/
 | Requirement | Version |
 |---|---|
 | Python | 3.10 or newer |
-| pip | bundled with Python |
-
 ---
 
 ### Arch Linux
@@ -91,35 +87,6 @@ python main.py
 | `customtkinter` | Modern themed UI widgets |
 | `Pillow` | Image loading and processing |
 | `requests` | HTTP calls to the VNDB API |
-
-Install all at once with:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Project Structure
-
-```
-VnManager/
-├── main.py                  # Entry point
-├── requirements.txt
-├── data/
-│   └── save.json            # Your library (auto-created)
-├── assets/
-│   └── logo.png
-└── app/
-    ├── api/
-    │   └── vndb.py          # VNDB Kana API wrapper
-    ├── ui/
-    │   ├── main_window.py   # Main window & category management
-    │   └── search_window.py # Search & browse UI
-    └── utils/
-        ├── image.py         # Async image loading
-        └── text.py          # BBCode stripping & description truncation
-```
 
 ---
 
