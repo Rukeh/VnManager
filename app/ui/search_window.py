@@ -180,7 +180,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             return
         try:
             api_data = search_vns(query)
-        except Exception as e:
+        except Exception:
             for widget in results_frame.winfo_children():
                 widget.destroy()
             customtkinter.CTkLabel(
