@@ -136,7 +136,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     def _render_grid(api_data: list) -> None:
         
-        card_width = 270
+        card_width = 195
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
         
@@ -151,7 +151,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
             img_label.pack(pady=(8, 4), padx=8)
             if img_url:
-                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
+                _executor.submit(_async_load_image, img_label, img_url, (165, 200))
 
             customtkinter.CTkLabel(card,
                 text=vn["title"],

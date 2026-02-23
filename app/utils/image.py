@@ -20,7 +20,7 @@ def load_image_from_url(url, size = (150, 200)):
         A CTkImage on success, or None if the request fails
     """
     try:
-        response = requests.get(url, timeout=5)
+        response = _session.get(url, timeout=5)
         response.raise_for_status()
         img = Image.open(BytesIO(response.content))
         img.load()
