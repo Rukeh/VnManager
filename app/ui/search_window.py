@@ -187,7 +187,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 results_frame,
                 text=f"Search failed: Please check your internet connection and try again.",
                 text_color="red",
-                wraplength=400,
+                wraplength=400
             ).pack(pady=20)
             return
         last_results.clear()
