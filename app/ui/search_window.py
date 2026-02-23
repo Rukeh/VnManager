@@ -80,6 +80,15 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         for widget in results_frame.winfo_children():
             widget.destroy()
 
+
+        if not api_data:
+            customtkinter.CTkLabel(
+                results_frame,
+                text="No results found.",
+                text_color="gray",
+            ).pack(pady=20)
+            return
+
         if view_mode.get() == "list":
             _render_list(api_data)
         else:
@@ -169,7 +178,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         query = entry.get().strip()
         if not query:
             return
-        api_data = search_vns(query)
+        try:
+            api_data = search_vns(query)
+        except Exception as e:
+            for widget in results_frame.winfo_children():
+                widget.destroy()
+            customtkinter.CTkLabel(
+                results_frame,
+                text=f"Search failed: Please check your internet connection and try again.",
+                text_color="red",
+            ).pack(pady=20)
+            return
         last_results.clear()
         last_results.extend(api_data)
         render_results(api_data)
