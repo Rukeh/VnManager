@@ -1,5 +1,6 @@
 import json
 import os
+import tkinter
 
 import customtkinter
 from PIL import Image
@@ -45,6 +46,8 @@ def run() -> None:
 
     selected_category = [None]
 
+    search_var = tkinter.StringVar()
+
     search_bar_frame = customtkinter.CTkFrame(
         master=app, width=800, height=30,
         border_width=2, corner_radius=15, fg_color="#303030",
@@ -55,6 +58,16 @@ def run() -> None:
     if os.path.exists(_LOGO_PATH):
         logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
         customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=108, y=5)
+
+    search_var = tkinter.StringVar()
+    search_entry = customtkinter.CTkEntry(
+        search_bar_frame,
+        placeholder_text="Filter VNs in current category...",
+        textvariable=search_var,
+        border_width=0,
+        fg_color="transparent",
+    )
+    search_entry.pack(fill="x", padx=12, pady=4)
 
     # Left panel (Categories)
 
@@ -105,12 +118,16 @@ def run() -> None:
             return
 
         right_title.configure(text=cat)
-        vns = data["vns"].get(cat, [])
+        query = search_var.get().strip().lower()
+        vns = [
+            v for v in data["vns"].get(cat, [])
+            if query in v["title"].lower() or query in (v.get("alttitle") or "").lower()
+        ]
 
         if not vns:
             customtkinter.CTkLabel(
                 vns_scroll,
-                text="No VNs in this category yet\nSearch for one and add it",
+                text="No VNs in this category yet\nSearch for one and add it" if not query else "No VNs match your search.",
                 font=("Arial", 13),
                 text_color="gray",
             ).pack(pady=40)
@@ -160,6 +177,8 @@ def run() -> None:
                 command=lambda v=vn: remove_vn(cat, v),
             ).pack(side="right", anchor="n", padx=(0, 6), pady=6)
 
+    search_var.trace_add("write", lambda *_: refresh_right_panel())
+
     def remove_vn(category: str, vn: dict) -> None:
         data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
         save_data(data)
@@ -167,6 +186,7 @@ def run() -> None:
 
     def select_category(name: str) -> None:
         selected_category[0] = name
+        search_var.set("")
         refresh_right_panel()
 
     # Left panel
