@@ -255,20 +255,39 @@ def run() -> None:
 
     def delete_category(name) -> None:
         """
-        Delete a category
-        This function is called by a button
-        The button role is to store the name of the category then send it to this function
+        Asks for confirmation before deleting a category and all its VNs.
         """
-        if name in data['categories']:
-            data['categories'].remove(name)
-            data['vns'].pop(name, None)
-            save_data(data)
-            if selected_category[0] == name:
-                selected_category[0] = None
-                right_title.configure(text="Select a category")
-                for widget in vns_scroll.winfo_children():
-                    widget.destroy()
-            refresh_categories()
+        popup = customtkinter.CTkToplevel(app)
+        popup.title("Delete category")
+        popup.geometry("300x110")
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text=f'Delete "{name}"?\nAll VNs in it will be removed.',
+            wraplength=260,
+        ).pack(pady=14)
+
+        btn_frame = customtkinter.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack()
+
+        def confirm():
+            popup.destroy()
+            if name in data['categories']:
+                data['categories'].remove(name)
+                data['vns'].pop(name, None)
+                save_data(data)
+                if selected_category[0] == name:
+                    selected_category[0] = None
+                    right_title.configure(text="Select a category")
+                    for widget in vns_scroll.winfo_children():
+                        widget.destroy()
+                refresh_categories()
+
+        customtkinter.CTkButton(btn_frame, text="Cancel", width=80, command=popup.destroy).pack(side="left", padx=8)
+        customtkinter.CTkButton(btn_frame, text="Delete", width=80, fg_color="#7a2020", hover_color="#5a1515", command=confirm).pack(side="left", padx=8)
 
     search_bar_frame.pack(pady=3, fill="x", padx=(245, 5))
     left_panel.pack(side="left", fill="y", padx=5, pady=5)
