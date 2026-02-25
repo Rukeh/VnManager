@@ -28,6 +28,11 @@ def load_data() -> dict:
 
 
 def _show_save_error(message: str) -> None:
+    """
+    Displays a popup window with an error message when saving fails.
+    Args:
+        message: The OSError message string to display to the user.
+    """
     popup = customtkinter.CTkToplevel()
     popup.title("Save error")
     popup.geometry("340x110")
@@ -42,7 +47,10 @@ def _show_save_error(message: str) -> None:
 
 def save_data(data: dict) -> None:
     """
-    Saves data to the save file
+    Saves data to the save file. Creates the data directory if it doesn't exist.
+    Shows an error popup if the write fails (e.g. permissions, disk full).
+    Args:
+        data: The full application state dict containing categories and vns.
     """
     try:
         os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
@@ -53,7 +61,8 @@ def save_data(data: dict) -> None:
 
 def run() -> None:
     """
-    Builds and starts the main application window
+    Builds and starts the main application window.
+    Initializes all UI panels, loads save data, and enters the Tkinter main loop.
     """
     app = customtkinter.CTk()
     app.geometry("1280x720")
@@ -113,6 +122,14 @@ def run() -> None:
     # Renders for the vn panel
 
     def _async_load_image(label, url, size):
+        """
+        Fetches an image from a URL and applies it to a label once loaded.
+        Intended to be run in a background thread via submit_image_task.
+        Args:
+            label: The CTkLabel to update with the loaded image.
+            url:   Direct URL to the image.
+            size:  (width, height) tuple for the image.
+        """
         img = load_image_from_url(url, size=size)
         if img:
             def _apply():
@@ -124,7 +141,9 @@ def run() -> None:
 
     def refresh_right_panel() -> None:
         """
-        Re-renders the VN list for the currently selected category
+        Re-renders the VN list for the currently selected category.
+        Filters results by the current search bar query if one is set.
+        Does nothing if no category is selected.
         """
         for widget in vns_scroll.winfo_children():
             widget.destroy()
@@ -196,11 +215,23 @@ def run() -> None:
     search_var.trace_add("write", lambda *_: refresh_right_panel())
 
     def remove_vn(category: str, vn: dict) -> None:
+        """
+        Removes a VN from a category, saves the updated data, and refreshes the panel.
+        Args:
+            category: The category name to remove the VN from.
+            vn:       The VN dict to remove, identified by its id field.
+        """        
         data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
         save_data(data)
         refresh_right_panel()
 
     def select_category(name: str) -> None:
+        """
+        Sets the active category and refreshes the right panel to show its VNs.
+        Also clears the search bar when switching categories.
+        Args:
+            name: The category name to select.
+        """        
         selected_category[0] = name
         search_var.set("")
         refresh_right_panel()
@@ -208,6 +239,10 @@ def run() -> None:
     # Left panel
 
     def refresh_categories() -> None:
+        """
+        Re-renders the category list in the left panel.
+        Each category gets a select button and a delete button.
+        """        
         for widget in categories_scroll.winfo_children():
             widget.destroy()
         for category in data["categories"]:
@@ -256,6 +291,11 @@ def run() -> None:
     def delete_category(name) -> None:
         """
         Asks for confirmation before deleting a category and all its VNs.
+        Shows a popup with Cancel and Delete buttons. If confirmed, removes
+        the category from data, clears the right panel if it was selected,
+        and refreshes the category list.
+        Args:
+            name: The category name to delete.
         """
         popup = customtkinter.CTkToplevel(app)
         popup.title("Delete category")
