@@ -1,10 +1,15 @@
 import tkinter
 import customtkinter
+from concurrent.futures import ThreadPoolExecutor
 
 from app.api.vndb import search_vns
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
 from app.utils.image import load_image_from_url, _executor
+
+_search_executor = ThreadPoolExecutor(max_workers=2)
+_image_executor = ThreadPoolExecutor(max_workers=6)
+_image_cache = {}
 
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
@@ -25,18 +30,34 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
+    image_futures: list = []
 
     results_frame = customtkinter.CTkScrollableFrame(window)
     results_frame.pack(fill="both", expand=True)
 
     def _async_load_image(label, url, size):
-        img = load_image_from_url(url, size=size)
+        key = (url, size)
+        if key in _image_cache:
+            img = _image_cache[key]
+        else:
+            img = load_image_from_url(url, size=size)
+            if img:
+                _image_cache[key] = img
         if img:
             def _apply():
                 if label.winfo_exists():
                     label.configure(image=img)
                     label.image = img
             label.after(0, _apply)
+
+    def _submit_image(label, url, size):
+        future = _image_executor.submit(_async_load_image, label, url, size)
+        image_futures.append(future)
+
+    def _cancel_image_tasks():
+        for f in image_futures:
+            f.cancel()
+        image_futures.clear()
 
     def _add_to_category(vn: dict) -> None:
         """Shows a small popup to pick a category, then saves the VN."""
@@ -80,7 +101,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         for widget in results_frame.winfo_children():
             widget.destroy()
 
-
         if not api_data:
             customtkinter.CTkLabel(
                 results_frame,
@@ -105,7 +125,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
             img_label.pack(side="left", padx=(8, 0), pady=8)
             if img_url:
-                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
+                _submit_image(img_label, img_url, (150, 200))
 
             text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
@@ -151,7 +171,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
             img_label.pack(pady=(8, 4), padx=8)
             if img_url:
-                _executor.submit(_async_load_image, img_label, img_url, (165, 200))
+                _submit_image(img_label, img_url, (165, 200))
 
             customtkinter.CTkLabel(card,
                 text=vn["title"],
@@ -178,6 +198,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         query = entry.get().strip()
         if not query:
             return
+
+        _cancel_image_tasks()
 
         for widget in results_frame.winfo_children():
             widget.destroy()
@@ -210,7 +232,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             last_results.extend(api_data)
             render_results(api_data)
 
-        _executor.submit(_search)
+        _search_executor.submit(_search)
 
     def toggle_view() -> None:
         if view_mode.get() == "list":
