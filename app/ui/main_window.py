@@ -59,7 +59,6 @@ def run() -> None:
         logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
         customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=108, y=5)
 
-    search_var = tkinter.StringVar()
     search_entry = customtkinter.CTkEntry(
         search_bar_frame,
         placeholder_text="Filter VNs in current category...",
