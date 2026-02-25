@@ -1,12 +1,13 @@
 import json
 import os
 import tkinter
+import copy
 
 import customtkinter
 from PIL import Image
 
 from app.ui.search_window import open_search_window
-from app.utils.image import load_image_from_url, _executor
+from app.utils.image import load_image_from_url, submit_image_task
 from app.utils.text import clean_description
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -23,16 +24,32 @@ def load_data() -> dict:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        return _DEFAULT_DATA.copy()
+        return copy.deepcopy(_DEFAULT_DATA)
 
+
+def _show_save_error(message: str) -> None:
+    popup = customtkinter.CTkToplevel()
+    popup.title("Save error")
+    popup.geometry("340x110")
+    popup.after(50, lambda: popup.lift())
+    customtkinter.CTkLabel(
+        popup,
+        text=f"Failed to save data:\n{message}",
+        text_color="red",
+        wraplength=300,
+    ).pack(pady=16)
+    customtkinter.CTkButton(popup, text="OK", width=80, command=popup.destroy).pack()
 
 def save_data(data: dict) -> None:
     """
     Saves data to the save file
     """
-    os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
-    with open(_SAVE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
+        with open(_SAVE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except OSError as e:
+        _show_save_error(str(e))
 
 def run() -> None:
     """
@@ -142,7 +159,7 @@ def run() -> None:
             img_label = customtkinter.CTkLabel(card, text="", width=90, height=120)
             img_label.pack(side="left", padx=(8, 0), pady=8)
             if img_url:
-                _executor.submit(_async_load_image, img_label, img_url, (150, 200))
+                submit_image_task(_async_load_image, img_label, img_url, (150, 200))
 
             text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)

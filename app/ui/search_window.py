@@ -5,10 +5,11 @@ from concurrent.futures import ThreadPoolExecutor
 from app.api.vndb import search_vns
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
-from app.utils.image import load_image_from_url, _executor
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
 _image_executor = ThreadPoolExecutor(max_workers=6)
+
+#this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
 _image_cache = {}
 
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:

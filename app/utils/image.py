@@ -27,3 +27,6 @@ def load_image_from_url(url, size = (150, 200)):
         return customtkinter.CTkImage(img, size=size)
     except Exception:
         return None
+
+def submit_image_task(fn, *args):
+    return _executor.submit(fn, *args)
