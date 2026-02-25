@@ -1,6 +1,6 @@
 # VnManager
 
-A desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https://api.vndb.org/kana).
+A very very basic desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https://api.vndb.org/kana).
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-green)
 
