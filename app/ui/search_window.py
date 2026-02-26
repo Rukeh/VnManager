@@ -12,6 +12,23 @@ _image_executor = ThreadPoolExecutor(max_workers=6)
 #this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
 _image_cache = {}
 
+#Color palette for cute theme 
+BG          = "#fff8f9"
+CARD_BG     = "#ffffff"
+PINK        = "#f472b6"
+PINK_LIGHT  = "#fce7f3"
+PINK_MID    = "#fbcfe8"
+PINK_DARK   = "#db2777"
+PINK_SOFT   = "#fdf2f8"
+TEXT        = "#3d2535"
+TEXT_MUTED  = "#b07090"
+BORDER      = "#fad4e8"
+
+FONT_TITLE  = ("Nunito", 13, "bold")
+FONT_BODY   = ("Quicksand", 12)
+FONT_SMALL  = ("Quicksand", 11)
+FONT_H2     = ("Nunito", 14, "bold")
+
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
     Opens a Toplevel window that lets the user search VnDB and browse results
