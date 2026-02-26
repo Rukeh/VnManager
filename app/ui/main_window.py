@@ -94,24 +94,26 @@ def run() -> None:
     selected_category = [None]
     search_var = tkinter.StringVar()
 
+    #topbar 
     topbar = customtkinter.CTkFrame(
         app, height=56, fg_color=TOPBAR_BG,
         border_width=1, border_color=BORDER, corner_radius=0,
     )
     topbar.pack(fill="x", side="top")
     topbar.pack_propagate(False)
-
     customtkinter.CTkLabel(
         topbar, text="🌸  VnManager",
         font=FONT_LOGO, text_color=PINK_DARK,
-    ).pack(side="left", padx=(16, 0))    
+    ).pack(side="left", padx=(16, 0)) 
 
     search_bar_frame = customtkinter.CTkFrame(
-        master=app, width=800, height=30,
-        border_width=2, corner_radius=15, fg_color="#303030",
+        topbar, height=34, fg_color=PINK_SOFT,
+        border_width=1, border_color=BORDER, corner_radius=20,
     )
-    left_panel = customtkinter.CTkFrame(master=app, width=230, border_width=2, corner_radius=8)
-    right_panel = customtkinter.CTkFrame(master=app, border_width=2, corner_radius=8, fg_color="#1c1d1f")
+    search_bar_frame.pack(side="left", fill="x", expand=True, padx=20, pady=10)
+    search_bar_frame.pack_propagate(False)
+
+    customtkinter.CTkLabel(search_bar_frame, text="🔍", font=("Quicksand", 13), text_color=PINK,).pack(side="left", padx=(12, 4))
 
     search_entry = customtkinter.CTkEntry(
         search_bar_frame,
@@ -119,16 +121,44 @@ def run() -> None:
         textvariable=search_var,
         border_width=0,
         fg_color="transparent",
+        font=FONT_BODY,
+        text_color=TEXT,
+        placeholder_text_color=TEXT_MUTED,
     )
-    search_entry.pack(fill="x", padx=12, pady=4)
+    search_entry.pack(fill="x", expand=True, padx=(0, 12), pady=4)
+    
+    customtkinter.CTkButton(
+        topbar,
+        text="✦  Search VN",
+        font=FONT_TITLE,
+        fg_color=PINK,
+        hover_color=PINK_DARK,
+        text_color="#ffffff",
+        corner_radius=20,
+        height=34,
+        width=130,
+        command=lambda: open_search_window(app, data, on_vn_added=refresh_right_panel),
+    ).pack(side="right", padx=(0, 16), pady=10)
+
+    #layout of the app
+
+    layout = customtkinter.CTkFrame(app, fg_color=BG, corner_radius=0)
+    layout.pack(fill="both", expand=True)
 
     # Left panel (Categories)
+
+    left_panel = customtkinter.CTkFrame(master=layout, width=230, border_width=2, corner_radius=8)
+    left_panel.pack(side="left", fill="y", padx=5, pady=5)
 
     category_entry = customtkinter.CTkEntry(left_panel, placeholder_text="New category...")
     category_entry.pack(padx=8, pady=(10, 4), fill="x")
 
     categories_scroll = customtkinter.CTkScrollableFrame(left_panel)
     categories_scroll.pack(fill="both", expand=True, padx=4, pady=4)
+
+    #right panel
+    right_panel = customtkinter.CTkFrame(master=layout, border_width=2, corner_radius=8, fg_color="#1c1d1f")
+    right_panel.pack(side="right", fill="both", pady=5, padx=5, expand=True)
 
     right_title = customtkinter.CTkLabel(
         right_panel,
@@ -137,12 +167,6 @@ def run() -> None:
         anchor="center",
     )
     right_title.pack(fill="x", padx=10, pady=(12, 6))
-
-    customtkinter.CTkButton(
-        right_panel,
-        text="Search VN",
-        command=lambda: open_search_window(app, data, on_vn_added=refresh_right_panel),
-    ).pack(pady=(0, 8), fill="x", padx=8)
 
     vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent")
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
@@ -356,10 +380,6 @@ def run() -> None:
 
         customtkinter.CTkButton(btn_frame, text="Cancel", width=80, command=popup.destroy).pack(side="left", padx=8)
         customtkinter.CTkButton(btn_frame, text="Delete", width=80, fg_color="#7a2020", hover_color="#5a1515", command=confirm).pack(side="left", padx=8)
-
-    search_bar_frame.pack(pady=3, fill="x", padx=(245, 5))
-    left_panel.pack(side="left", fill="y", padx=5, pady=5)
-    right_panel.pack(side="right", fill="both", pady=5, padx=5, expand=True)
 
     refresh_categories()
     app.mainloop()
