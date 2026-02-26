@@ -145,16 +145,64 @@ def run() -> None:
     layout = customtkinter.CTkFrame(app, fg_color=BG, corner_radius=0)
     layout.pack(fill="both", expand=True)
 
-    # Left panel (Categories)
+    # Categories sidebar
 
-    left_panel = customtkinter.CTkFrame(master=layout, width=230, border_width=2, corner_radius=8)
-    left_panel.pack(side="left", fill="y", padx=5, pady=5)
+    sidebar = customtkinter.CTkFrame(
+        layout, width=220, fg_color=SIDEBAR_BG,
+        border_width=1, border_color=BORDER, corner_radius=0,
+    )
+    sidebar.pack(side="left", fill="y")
+    sidebar.pack_propagate(False)
 
-    category_entry = customtkinter.CTkEntry(left_panel, placeholder_text="New category...")
-    category_entry.pack(padx=8, pady=(10, 4), fill="x")
+    customtkinter.CTkLabel(
+        sidebar, text="MY LIBRARY",
+        font=("Nunito", 10, "bold"), text_color=TEXT_MUTED,
+    ).pack(anchor="w", padx=16, pady=(14, 4))
 
-    categories_scroll = customtkinter.CTkScrollableFrame(left_panel)
-    categories_scroll.pack(fill="both", expand=True, padx=4, pady=4)
+    categories_scroll = customtkinter.CTkScrollableFrame(
+        sidebar, fg_color="transparent", scrollbar_button_color=PINK_MID,
+    )
+    categories_scroll.pack(fill="both", expand=True, padx=8, pady=(0, 6))
+
+    # New category input at the bottom
+    new_cat_frame = customtkinter.CTkFrame(
+        sidebar, fg_color=CARD_BG,
+        border_width=1, border_color=PINK_MID, corner_radius=10,
+    )
+    new_cat_frame.pack(fill="x", padx=8, pady=(0, 10))
+
+    category_entry = customtkinter.CTkEntry(
+        new_cat_frame,
+        placeholder_text="＋  New category...",
+        border_width=0, fg_color="transparent",
+        font=FONT_BODY, text_color=PINK_DARK,
+        placeholder_text_color=PINK,
+    )
+    category_entry.pack(side="left", fill="x", expand=True, padx=(10, 4), pady=6)
+
+    def add_category() -> None:
+        """
+        Adds a category,
+        fetches the name from the entry attached to it
+        -> attach to a button
+        Stores it inside save data and refreshes categories to display the changes
+        """        
+        name = category_entry.get().strip()
+        if not name or name in data["categories"]:
+            return
+        data["categories"].append(name)
+        save_data(data)
+        category_entry.delete(0, "end")
+        refresh_categories()
+
+    category_entry.bind("<Return>", lambda _e: add_category())
+
+    customtkinter.CTkButton(
+        new_cat_frame, text="Add", width=46, height=28,
+        fg_color=PINK_LIGHT, hover_color=PINK_MID,
+        text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+        corner_radius=8, command=add_category,
+    ).pack(side="right", padx=(0, 6), pady=6)    
 
     #right panel
     right_panel = customtkinter.CTkFrame(master=layout, border_width=2, corner_radius=8, fg_color="#1c1d1f")
@@ -173,7 +221,7 @@ def run() -> None:
 
     # Renders for the vn panel
 
-    def _async_load_image(label, url, size):
+    def _async_load_image(label, url, size) :
         """
         Fetches an image from a URL and applies it to a label once loaded.
         Intended to be run in a background thread via submit_image_task.
@@ -320,25 +368,6 @@ def run() -> None:
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
-
-    def add_category() -> None:
-        """
-        Adds a category,
-        fetches the name from the entry attached to it
-        -> attach to a button
-        Stores it inside save data and refreshes categories to display the changes
-        """
-        name = category_entry.get().strip()
-        if not name or name in data["categories"]:
-            return
-        data["categories"].append(name)
-        save_data(data)
-        category_entry.delete(0, "end")
-        refresh_categories()
-
-    customtkinter.CTkButton(
-        left_panel, text="+ Add", width=60, command=add_category,
-    ).pack(padx=8, pady=(0, 8), fill="x")
 
     def delete_category(name) -> None:
         """
