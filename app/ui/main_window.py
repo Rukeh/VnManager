@@ -335,6 +335,7 @@ def run() -> None:
         selected_category[0] = name
         search_var.set("")
         refresh_right_panel()
+        refresh_categories() 
 
     # Left panel
 
@@ -345,18 +346,12 @@ def run() -> None:
         """        
         for widget in categories_scroll.winfo_children():
             widget.destroy()
+        
         for category in data["categories"]:
-            row_frame = customtkinter.CTkFrame(categories_scroll, fg_color="transparent")
+            is_active = (category == selected_category[0])
+            
+            row_frame = customtkinter.CTkFrame(categories_scroll, fg_color=PINK_LIGHT if is_active else 'transparent', corner_radius=10)
             row_frame.pack(fill="x", pady=2)
-
-            customtkinter.CTkButton(
-                master=row_frame,
-                text=category,
-                anchor="w",
-                fg_color="transparent",
-                hover_color="#3a3a3a",
-                command=lambda c=category: select_category(c)
-            ).pack(side="left", fill="x", expand=True, padx=(8, 0))
 
             customtkinter.CTkButton(
                 master=row_frame,
@@ -368,6 +363,19 @@ def run() -> None:
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
+
+            if is_active:
+                customtkinter.CTkFrame(
+                    row_frame, width=3, fg_color=PINK, corner_radius=2,
+                ).pack(side="left", fill="y", padx=(4, 0), pady=4)
+
+            customtkinter.CTkButton(
+                row_frame, text=category, anchor="w",
+                font=("Nunito", 13, "bold") if is_active else ("Nunito", 13),
+                fg_color="transparent", hover_color=PINK_MID,
+                text_color=PINK_DARK if is_active else TEXT,
+                command=lambda c=category: select_category(c),
+            ).pack(side="left", fill="x", expand=True)
 
     def delete_category(name) -> None:
         """
