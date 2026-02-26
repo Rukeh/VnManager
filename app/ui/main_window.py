@@ -88,12 +88,23 @@ def run() -> None:
     app = customtkinter.CTk()
     app.geometry("1280x720")
     app.title("VnManager")
+    app.configure(fg_color=BG)
 
     data = load_data()
-
     selected_category = [None]
-
     search_var = tkinter.StringVar()
+
+    topbar = customtkinter.CTkFrame(
+        app, height=56, fg_color=TOPBAR_BG,
+        border_width=1, border_color=BORDER, corner_radius=0,
+    )
+    topbar.pack(fill="x", side="top")
+    topbar.pack_propagate(False)
+
+    customtkinter.CTkLabel(
+        topbar, text="🌸  VnManager",
+        font=FONT_LOGO, text_color=PINK_DARK,
+    ).pack(side="left", padx=(16, 0))    
 
     search_bar_frame = customtkinter.CTkFrame(
         master=app, width=800, height=30,
@@ -101,10 +112,6 @@ def run() -> None:
     )
     left_panel = customtkinter.CTkFrame(master=app, width=230, border_width=2, corner_radius=8)
     right_panel = customtkinter.CTkFrame(master=app, border_width=2, corner_radius=8, fg_color="#1c1d1f")
-
-    if os.path.exists(_LOGO_PATH):
-        logo_image = customtkinter.CTkImage(light_image=Image.open(_LOGO_PATH), size=(30, 30))
-        customtkinter.CTkLabel(master=app, image=logo_image, text="").place(x=108, y=5)
 
     search_entry = customtkinter.CTkEntry(
         search_bar_frame,
