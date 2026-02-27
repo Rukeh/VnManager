@@ -349,7 +349,8 @@ def run() -> None:
         
         for category in data["categories"]:
             is_active = (category == selected_category[0])
-            
+            count = len(data["vns"].get(category, []))
+                        
             row_frame = customtkinter.CTkFrame(categories_scroll, fg_color=PINK_LIGHT if is_active else 'transparent', corner_radius=10)
             row_frame.pack(fill="x", pady=2)
 
@@ -363,7 +364,20 @@ def run() -> None:
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
-
+            #badge that shows the number of vns in the category
+            badge = customtkinter.CTkFrame(
+            row_frame,
+            fg_color=PINK if is_active else PINK_LIGHT,
+            corner_radius=20, width=28, height=20,
+            )
+            badge.pack(side="right", padx=(0, 2))
+            badge.pack_propagate(False)
+            customtkinter.CTkLabel(
+                badge, text=str(count),
+                font=("Nunito", 10, "bold"),
+                text_color="#fff" if is_active else PINK_DARK,
+            ).place(relx=0.5, rely=0.5, anchor="center")
+            
             if is_active:
                 customtkinter.CTkFrame(
                     row_frame, width=3, fg_color=PINK, corner_radius=2,
