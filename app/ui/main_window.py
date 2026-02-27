@@ -205,18 +205,23 @@ def run() -> None:
     ).pack(side="right", padx=(0, 6), pady=6)    
 
     #right panel
-    right_panel = customtkinter.CTkFrame(master=layout, border_width=2, corner_radius=8, fg_color="#1c1d1f")
+    right_panel = customtkinter.CTkFrame(master=layout, corner_radius=0, fg_color=BG)
     right_panel.pack(side="right", fill="both", pady=5, padx=5, expand=True)
 
+    panel_header = customtkinter.CTkFrame(right_panel, fg_color=BG, corner_radius=0, height=52)
+    panel_header.pack(fill="x", padx=20, pady=(14, 0))
+    panel_header.pack_propagate(False)
+    
     right_title = customtkinter.CTkLabel(
-        right_panel,
+        panel_header,
         text="Select a category",
-        font=("Arial", 18, "bold"),
-        anchor="center",
+        font=FONT_H1,
+        text_color=TEXT,
+        anchor="w"
     )
     right_title.pack(fill="x", padx=10, pady=(12, 6))
 
-    vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent")
+    vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent", scrollbar_button_color=PINK_MID)
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
 
     # Renders for the vn panel
