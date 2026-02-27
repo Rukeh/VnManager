@@ -273,12 +273,13 @@ def run() -> None:
             ).pack(pady=40)
             return
 
-        for vn in vns:
+        for idx, vn in enumerate(vns):
+            row, col = divmod(idx, 2)
             year = (vn.get("released") or "?")[:4]
             img_url = (vn.get("image") or {}).get("url", "")
 
             card = customtkinter.CTkFrame(vns_scroll)
-            card.pack(fill="x", pady=4, padx=4)
+            card.grid(row=row, column=col, padx=6, pady=6, sticky="nsew")
 
             img_label = customtkinter.CTkLabel(card, text="", width=90, height=120)
             img_label.pack(side="left", padx=(8, 0), pady=8)
@@ -293,7 +294,7 @@ def run() -> None:
                 text=f"{vn['title']} ({year})",
                 font=("Arial", 15, "bold"),
                 anchor="w",
-                wraplength=500,
+                wraplength=300,
             ).pack(fill="x")
 
             customtkinter.CTkLabel(
@@ -301,7 +302,7 @@ def run() -> None:
                 text=clean_description(vn.get("description")),
                 font=("Arial", 12),
                 anchor="w",
-                wraplength=500,
+                wraplength=300,
                 justify="left",
                 text_color="gray",
             ).pack(fill="x", pady=(4, 0))
