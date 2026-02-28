@@ -273,6 +273,9 @@ def run() -> None:
             ).pack(pady=40)
             return
 
+        vns_scroll.columnconfigure(0, weight=1)
+        vns_scroll.columnconfigure(1, weight=1)  
+
         for idx, vn in enumerate(vns):
             row, col = divmod(idx, 2)
             year = (vn.get("released") or "?")[:4]
