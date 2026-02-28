@@ -257,8 +257,10 @@ def run() -> None:
         popup.geometry("620x540")
         popup.configure(fg_color=BG)
         popup.resizable(True, True)
-        popup.after(50, lambda: popup.lift())
-        popup.after(50, lambda: popup.focus_force())
+        popup.after(100, lambda: popup.lift())
+        popup.after(100, lambda: popup.focus_force())
+        popup.attributes("-topmost", True)
+        popup.after(200, lambda: popup.attributes("-topmost", False))
 
 
         header = customtkinter.CTkFrame(
