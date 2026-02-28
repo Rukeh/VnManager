@@ -39,6 +39,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     window.geometry("600x450")
     window.after(100, lambda: window.lift())
     window.after(100, lambda: window.focus_force())
+    window.configure(fg_color=BG)
 
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
@@ -171,15 +172,15 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             inner = customtkinter.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="both", padx=12, pady=12)
 
-            cover_frame = customtkinter.CTkFrame(inner, width=150, height=200, fg_color=PINK_LIGHT, corner_radius=8,)
-            cover_frame.pack(side="left", padx=(0, 12))
+            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=8,)
+            cover_frame.pack(side="left", pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)
 
 
             img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18))
             img_label.place(relx=0.5, rely=0.5, anchor="center")
             if img_url:
-                _submit_image(img_label, img_url, (150, 200))
+                _submit_image(img_label, img_url, (165, 200))
 
             text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True)
@@ -225,40 +226,51 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         card_width = 195
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
+
+        results_frame.columnconfigure(list(range(columns)), weight=1)
         
         for index, vn in enumerate(api_data):
             year = (vn.get("released") or "?")[:4]
             img_url = (vn["image"] or {}).get("url", "")
             row, col = divmod(index, columns)
 
-            card = customtkinter.CTkFrame(results_frame)
-            card.grid(row=row, column=col, padx=8, pady=8, sticky="n")
+            card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+            card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-            img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
-            img_label.pack(pady=(8, 4), padx=8)
+            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10)
+            cover_frame.pack(pady=(10, 6), padx=10)
+            cover_frame.pack_propagate(False)            
+            
+            
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28))
+            img_label.place(relx=0.5, rely=0.5, anchor="center")
             if img_url:
                 _submit_image(img_label, img_url, (165, 200))
 
             customtkinter.CTkLabel(card,
-                text=vn["title"],
-                font=("Arial", 12, "bold"),
+            text=vn["title"],
+                font=("Nunito", 12, "bold"), 
+                text_color=TEXT,
                 wraplength=130,
                 justify="center",
             ).pack(padx=6)
 
             customtkinter.CTkLabel(
-                card,
-                text=year,
-                font=("Arial", 11),
-                text_color="gray",
+                card, text=year,
+                font=FONT_SMALL, 
+                text_color=TEXT_MUTED,
             ).pack(pady=(0, 8))
 
             customtkinter.CTkButton(
-                card,
-                text="＋ Add",
-                width=100,
+                card, text="＋ Add", 
+                width=100, height=28,
+                fg_color=PINK_LIGHT, 
+                hover_color=PINK,
+                text_color=PINK_DARK, 
+                font=("Nunito", 12, "bold"),
+                corner_radius=20,
                 command=lambda v=vn: _add_to_category(v),
-            ).pack(pady=(0, 8))            
+            ).pack(pady=(0, 10))         
 
     def do_search() -> None:
         query = entry.get().strip()
@@ -269,11 +281,15 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         for widget in results_frame.winfo_children():
             widget.destroy()
+        loading = customtkinter.CTkFrame(results_frame, fg_color="transparent")
+        loading.pack(pady=40)
         customtkinter.CTkLabel(
-            results_frame,
-            text="Searching...",
-            text_color="gray",
-        ).pack(pady=20)
+            loading, text="🔍", font=("Nunito", 32), text_color=PINK_MID,
+        ).pack()
+        customtkinter.CTkLabel(
+            loading, text="Searching VnDB...",
+            font=("Nunito", 14, "bold"), text_color=TEXT_MUTED,
+        ).pack(pady=(6, 0))
 
         def _search():
             try:
@@ -289,9 +305,10 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             customtkinter.CTkLabel(
                 results_frame,
                 text="Search failed. Please check your internet connection and try again.",
-                text_color="red",
-                wraplength=400,
-            ).pack(pady=20)
+                font=FONT_BODY,
+                text_color="#f87171", 
+                wraplength=400
+            ).pack(pady=30)
 
         def _show_results(api_data):
             last_results.clear()
