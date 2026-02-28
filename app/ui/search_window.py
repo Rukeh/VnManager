@@ -92,7 +92,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if img:
             def _apply():
                 if label.winfo_exists():
-                    label.configure(image=img)
+                    label.configure(image=img, text="")
                     label.image = img
             label.after(0, _apply)
 
@@ -209,13 +209,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             inner = customtkinter.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="both", padx=12, pady=12)
 
-            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=8,)
+            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color='transparent', corner_radius=10)
             cover_frame.pack(side="left", pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)
 
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18))
-            img_label.place(relx=0.5, rely=0.5, anchor="center")
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent")
+            img_label.pack(fill="both", expand=True)
             if img_url:
                 _submit_image(img_label, img_url, (165, 200))
 
@@ -274,13 +274,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
             card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10)
+            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color='transparent', corner_radius=10)
             cover_frame.pack(pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)            
             
             
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28))
-            img_label.place(relx=0.5, rely=0.5, anchor="center")
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent")
+            img_label.pack(fill="both", expand=True)
             if img_url:
                 _submit_image(img_label, img_url, (165, 200))
 
