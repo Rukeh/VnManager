@@ -141,7 +141,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         customtkinter.CTkButton(popup, text="Add", width=60, command=confirm).pack(side="left")
 
-
+    #_____renders______
     def render_results(api_data: list) -> None:
         for widget in results_frame.winfo_children():
             widget.destroy()
@@ -163,41 +163,62 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         for vn in api_data:
             year = (vn.get("released") or "?")[:4]
             img_url = (vn["image"] or {}).get("url", "")
+            rating  = vn.get("rating")
 
-            card = customtkinter.CTkFrame(results_frame)
+            card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
             card.pack(fill="x", pady=4, padx=4)
 
-            img_label = customtkinter.CTkLabel(card, text="", width=150, height=200)
-            img_label.pack(side="left", padx=(8, 0), pady=8)
+            inner = customtkinter.CTkFrame(card, fg_color="transparent")
+            inner.pack(fill="both", padx=12, pady=12)
+
+            cover_frame = customtkinter.CTkFrame(inner, width=150, height=200, fg_color=PINK_LIGHT, corner_radius=8,)
+            cover_frame.pack(side="left", padx=(0, 12))
+            cover_frame.pack_propagate(False)
+
+
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18))
+            img_label.place(relx=0.5, rely=0.5, anchor="center")
             if img_url:
                 _submit_image(img_label, img_url, (150, 200))
 
-            text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
-            text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
+            text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
+            text_frame.pack(side="left", fill="both", expand=True)
 
             customtkinter.CTkLabel(
                 text_frame,
-                text=f"{vn['title']} ({year})",
-                font=("Arial", 20, "bold"),
+                text=vn["title"],
+                font=FONT_H2,
+                text_color=TEXT,
                 anchor="w",
-                wraplength=350,
-            ).pack(fill="x", pady=(4, 4))
+                wraplength=380,
+            ).pack(fill="x")
+            year_rat = year
+            if rating:
+                year_rat += f"   ★ {rating:.2f}"
+            customtkinter.CTkLabel(text_frame, text=year_rat,font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",).pack(fill="x", pady=(1, 4))            
 
             customtkinter.CTkLabel(
                 text_frame,
                 text=clean_description(vn.get("description")),
-                font=("Arial", 13),
+                font=FONT_SMALL,
+                text_color=TEXT_MUTED,
                 anchor="w",
-                wraplength=350,
+                wraplength=300,
                 justify="left",
             ).pack(fill="x")
 
             customtkinter.CTkButton(
                 text_frame,
-                text='+',
-                width = 160,
+                text='+ Add',
+                width = 72,
+                height=28,
+                fg_color=PINK_LIGHT,
+                hover_color=PINK,
+                text_color=PINK_DARK,
+                font=('Nunito', 12, "bold"),
+                corner_radius=20,
                 command = lambda v=vn: _add_to_category(v)
-            ).pack(anchor='w', pady=(8,0))
+            ).pack(anchor='center',side = 'right', pady=(8,0))
 
     def _render_grid(api_data: list) -> None:
         
