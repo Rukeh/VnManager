@@ -1,6 +1,6 @@
 import re
 
-MAX_DESCRIPTION_LENGTH = 300
+MAX_DESCRIPTION_LENGTH = 1000
 
 
 def clean_description(text):
