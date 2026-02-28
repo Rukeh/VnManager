@@ -277,46 +277,59 @@ def run() -> None:
             row, col = divmod(idx, 2)
             year = (vn.get("released") or "?")[:4]
             img_url = (vn.get("image") or {}).get("url", "")
+            rating = vn.get("rating")
 
-            card = customtkinter.CTkFrame(vns_scroll)
+            card = customtkinter.CTkFrame(vns_scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=16)
             card.grid(row=row, column=col, padx=6, pady=6, sticky="nsew")
 
-            img_label = customtkinter.CTkLabel(card, text="", width=90, height=120)
-            img_label.pack(side="left", padx=(8, 0), pady=8)
+            top_row = customtkinter.CTkFrame(card, fg_color="transparent")
+            top_row.pack(fill="x", padx=12, pady=(12, 0)) 
+
+            cover_frame = customtkinter.CTkFrame(top_row, width=90, height=120, fg_color=PINK_LIGHT, corner_radius=10)
+            cover_frame.pack(side="left", padx=(0, 10))
+            cover_frame.pack_propagate(False)                       
+
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font = ("Nunito", 24))
+            img_label.place(relx=0.5, rely=0.5, anchor='center')
             if img_url:
                 submit_image_task(_async_load_image, img_label, img_url, (150, 200))
 
-            text_frame = customtkinter.CTkFrame(card, fg_color="transparent")
-            text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=8)
+            customtkinter.CTkButton(
+                top_row, text="✕", width=26, height=26,
+                fg_color=PINK_LIGHT, hover_color=PINK,
+                text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+                corner_radius=13,
+                command=lambda v=vn: remove_vn(cat, v),
+            ).pack(side="right", anchor="n")
+            
+            text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
+            text_frame.pack(side="left", fill="both", expand=True)
 
             customtkinter.CTkLabel(
                 text_frame,
                 text=f"{vn['title']} ({year})",
-                font=("Arial", 15, "bold"),
+                font=FONT_H2,
+                text_color=TEXT,
                 anchor="w",
-                wraplength=300,
+                wraplength=240,
             ).pack(fill="x")
 
+            customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font= FONT_SMALL, anchor='w').pack(fill="x")
+
+            if rating:
+                rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
+                rating_frame.pack(anchor='w', pady=(4,0))
+                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font = ('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)            
+            
             customtkinter.CTkLabel(
-                text_frame,
+                card,
                 text=clean_description(vn.get("description")),
-                font=("Arial", 12),
+                font=FONT_SMALL,
+                text_color=TEXT_MUTED,
                 anchor="w",
                 wraplength=300,
-                justify="left",
-                text_color="gray",
-            ).pack(fill="x", pady=(4, 0))
-
-            customtkinter.CTkButton(
-                card,
-                text="✕",
-                width=28,
-                height=28,
-                fg_color="transparent",
-                hover_color="#5a2020",
-                text_color="#cc4444",
-                command=lambda v=vn: remove_vn(cat, v),
-            ).pack(side="right", anchor="n", padx=(0, 6), pady=6)
+                justify="left"
+            ).pack(fill="x", padx=12, pady=(8, 12))
 
     search_var.trace_add("write", lambda *_: refresh_right_panel())
 
