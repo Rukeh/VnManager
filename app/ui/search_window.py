@@ -111,23 +111,51 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if not categories:
             popup = customtkinter.CTkToplevel(window)
             popup.title("No categories")
-            popup.geometry("280x80")
+            popup.geometry("300x100")
+            popup.configure(fg_color=BG)
             popup.after(50, lambda: popup.lift())
-            customtkinter.CTkLabel(popup, text="No categories yet.\nAdd one in the main window first.").pack(pady=12)
-            customtkinter.CTkButton(popup, text="OK", width=80, command=popup.destroy).pack()
+            customtkinter.CTkLabel(popup, 
+            text="No categories yet.\nAdd one in the main window first.",
+            font=FONT_BODY, 
+            text_color=TEXT
+            ).pack(pady=12)
+            customtkinter.CTkButton(popup, 
+            text="OK", 
+            width=80,
+            fg_color=PINK,
+            hover_color=PINK_DARK,
+            text_color="#fff",
+            corner_radius=20, 
+            command=popup.destroy).pack()
             return
 
         popup = customtkinter.CTkToplevel(window)
         popup.title("Add to category")
-        popup.geometry("280x70")
+        popup.geometry("300x100")
+        popup.configure(fg_color=BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
 
-        customtkinter.CTkLabel(popup, text="Category:").pack(side="left", padx=(12, 6), pady=18)
+        customtkinter.CTkLabel(popup, 
+            text=f'Add "{vn["title"]}" to :', 
+            font= FONT_TITLE,
+            text_color=TEXT,
+            wraplength=260,
+        ).pack(pady=(16,8))
 
         var = tkinter.StringVar(value=categories[0])
-        customtkinter.CTkOptionMenu(popup, values=categories, variable=var).pack(side="left", padx=(0, 6))
+        customtkinter.CTkOptionMenu(popup, 
+        values=categories, 
+        variable=var,
+        fg_color=PINK_LIGHT,
+        button_color=PINK,
+        button_hover_color=PINK_DARK,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        dropdown_fg_color=CARD_BG,
+        corner_radius=10
+        ).pack(padx=20, fill="x")
 
         def confirm():
             cat = var.get()
@@ -140,7 +168,16 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     on_vn_added()
             popup.destroy()
 
-        customtkinter.CTkButton(popup, text="Add", width=60, command=confirm).pack(side="left")
+        customtkinter.CTkButton(popup, 
+        text="+ Add", 
+        width=100, 
+        fg_color=PINK,
+        hover_color=PINK_DARK,
+        text_color="#fff",
+        font=FONT_TITLE,
+        corner_radius=20,
+        command=confirm
+        ).pack(pady=12)
 
     #_____renders______
     def render_results(api_data: list) -> None:
