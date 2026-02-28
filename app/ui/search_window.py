@@ -40,19 +40,46 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     window.after(100, lambda: window.lift())
     window.after(100, lambda: window.focus_force())
 
-    top_bar = customtkinter.CTkFrame(window)
-    top_bar.pack(fill="x", padx=10, pady=10)
-
-    entry = customtkinter.CTkEntry(top_bar, placeholder_text="Search a VN...  (Tip : You can press ENTER to search)")
-    entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
-
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
-    image_futures: list = []
+    image_futures: list = []    
+    
+    #___________Header__________
+    
+    top_bar = customtkinter.CTkFrame(window, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=0, height=64)
+    top_bar.pack(fill="x")
+    top_bar.pack_propagate(False)
 
-    results_frame = customtkinter.CTkScrollableFrame(window)
-    results_frame.pack(fill="both", expand=True)
+    toggle_btn = customtkinter.CTkButton(top_bar, text="⊞ Grid", width=76,fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK,font=("Nunito", 12, "bold"),corner_radius=20, command=lambda :toggle_view())
+    toggle_btn.pack(side="right", padx=(0, 12))
 
+    search_btn = customtkinter.CTkButton(top_bar, text="Search", width=80,fg_color=PINK, hover_color=PINK_DARK,text_color="#fff", font = ("Nunito", 13, "bold"), corner_radius=20, command=lambda :do_search())
+    search_btn.pack(side="right", padx=(0,6))    
+    
+    customtkinter.CTkLabel(
+        top_bar, text="🔎  Search VnDB",
+        font=("Nunito", 16, "bold"), text_color=PINK_DARK,
+    ).pack(side="left", padx=(16, 0))
+
+    search_frame = customtkinter.CTkFrame(
+        top_bar, fg_color=PINK_SOFT,
+        border_width=1, border_color=BORDER, corner_radius=20,
+    )
+    search_frame.pack(side="right", fill="x", expand=True, padx=(12, 8), pady=12)
+
+    customtkinter.CTkLabel(
+        search_frame, text="🔍", font=("Quicksand", 12), text_color=PINK,
+    ).pack(side="left", padx=(10, 4))
+
+    entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...  (Press Enter)", border_width=0, fg_color='transparent', font = FONT_BODY, text_color=TEXT, placeholder_text_color=TEXT_MUTED)
+    entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=6)
+
+    #______Results_______
+
+    results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
+    results_frame.pack(fill="both", expand=True, padx=12, pady=10)
+   
+   #____image_related____
     def _async_load_image(label, url, size):
         key = (url, size)
         if key in _image_cache:
@@ -76,7 +103,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         for f in image_futures:
             f.cancel()
         image_futures.clear()
-
+    #_________________________
     def _add_to_category(vn: dict) -> None:
         """Shows a small popup to pick a category, then saves the VN."""
         categories = data.get("categories", [])
@@ -261,12 +288,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             toggle_btn.configure(text="⊞ Grid")
         if last_results:
             render_results(last_results)
-
-    toggle_btn = customtkinter.CTkButton(top_bar, text="⊞ Grid", width=80, command=toggle_view)
-    toggle_btn.pack(side="right", padx=(0, 8))
-
-    search_btn = customtkinter.CTkButton(top_bar, text="Search", command=do_search)
-    search_btn.pack(side="right")
 
     _resize_job = None
     _last_size = [0, 0]
