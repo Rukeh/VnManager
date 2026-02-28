@@ -409,6 +409,7 @@ def run() -> None:
         popup = customtkinter.CTkToplevel(app)
         popup.title("Rename category")
         popup.geometry("300x130")
+        popup.configure(fg_color=SIDEBAR_BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
@@ -480,7 +481,7 @@ def run() -> None:
 
             customtkinter.CTkButton(
                 master=row_frame,
-                text="✎",
+                text="🖍",
                 width=28,
                 height=28,
                 fg_color="transparent",
