@@ -361,10 +361,101 @@ def run() -> None:
 
     # Left panel
 
+    def rename_category(oldname: str, newname: str):
+        newname = newname.strip()
+        if not newname or newname == oldname or newname in data['categories']:
+            refresh_categories()
+            return
+        
+        index = data["categories"].index(oldname)
+        data["categories"][index] = newname
+
+        if oldname in data["vns"]:
+            data['vns'][newname] = data["vns"].pop(oldname)
+
+        if selected_category[0] == oldname:
+            selected_category[0] = newname
+            right_title.configure(text=newname)
+        
+        save_data(data)
+        refresh_categories()
+
+    def start_rename(category: str, row_frame) -> None:
+        for widget in row_frame.winfo_children():
+            widget.destroy()
+        
+        entry = customtkinter.CTkEntry(
+            row_frame,
+            font=("Nunito", 13, "bold"),
+            fg_color=PINK_LIGHT,
+            border_color=PINK,
+            text_color=PINK_DARK,
+        )
+        entry.insert(0, category)
+        entry.select_range(0, "end")
+        entry.pack(fill="x", expand=True, padx=6, pady=4)
+        entry.focus_set()
+        
+        entry.bind("<Return>", lambda e: rename_category(category, entry.get()))
+        entry.bind("<FocusOut>", lambda e: rename_category(category, entry.get()))
+        entry.bind("<Escape>", lambda e: refresh_categories())
+
+    def _popup_rename(category: str) -> None:
+        """
+        Shows a popup dialog to rename a category.
+        Args:
+            category: The current category name to rename.
+        """
+        popup = customtkinter.CTkToplevel(app)
+        popup.title("Rename category")
+        popup.geometry("300x130")
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text=f'Rename "{category}" to:',
+            font=FONT_TITLE,
+            text_color=TEXT,
+            wraplength=260,
+        ).pack(pady=(16, 8))
+
+        entry = customtkinter.CTkEntry(
+            popup,
+            font=FONT_BODY,
+            fg_color=PINK_SOFT,
+            border_color=PINK,
+            text_color=TEXT,
+        )
+        entry.insert(0, category)
+        entry.select_range(0, "end")
+        entry.pack(fill="x", padx=20)
+        entry.focus_set()
+
+        def confirm():
+            rename_category(category, entry.get())
+            popup.destroy()
+
+        entry.bind("<Return>", lambda _e: confirm())
+        entry.bind("<Escape>", lambda _e: popup.destroy())
+
+        customtkinter.CTkButton(
+            popup,
+            text="Rename",
+            width=100,
+            fg_color=PINK,
+            hover_color=PINK_DARK,
+            text_color="#fff",
+            font=FONT_TITLE,
+            corner_radius=20,
+            command=confirm,
+        ).pack(pady=12)
+
     def refresh_categories() -> None:
         """
         Re-renders the category list in the left panel.
-        Each category gets a select button and a delete button.
+        Each category gets a select button, a rename button, and a delete button.
         """        
         for widget in categories_scroll.winfo_children():
             widget.destroy()
@@ -386,6 +477,18 @@ def run() -> None:
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
+
+            customtkinter.CTkButton(
+                master=row_frame,
+                text="✎",
+                width=28,
+                height=28,
+                fg_color="transparent",
+                hover_color=PINK_MID,
+                text_color=TEXT_MUTED,
+                command=lambda c=category: _popup_rename(c),
+            ).pack(side="right", padx=(0, 2))
+
             #badge that shows the number of vns in the category
             badge = customtkinter.CTkFrame(
             row_frame,
@@ -405,13 +508,15 @@ def run() -> None:
                     row_frame, width=3, fg_color=PINK, corner_radius=2,
                 ).pack(side="left", fill="y", padx=(4, 0), pady=4)
 
-            customtkinter.CTkButton(
+            button_rename = customtkinter.CTkButton(
                 row_frame, text=category, anchor="w",
                 font=("Nunito", 13, "bold") if is_active else ("Nunito", 13),
                 fg_color="transparent", hover_color=PINK_MID,
                 text_color=PINK_DARK if is_active else TEXT,
                 command=lambda c=category: select_category(c),
-            ).pack(side="left", fill="x", expand=True)
+            )
+            button_rename.pack(side="left", fill="x", expand=True)
+            button_rename.bind("<Double-Button-1>", lambda e, c=category, f=row_frame: start_rename(c, f))
 
     def delete_category(name) -> None:
         """
