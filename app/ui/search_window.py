@@ -131,7 +131,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         popup = customtkinter.CTkToplevel(window)
         popup.title("Add to category")
-        popup.geometry("300x100")
+        popup.geometry("350x170")
         popup.configure(fg_color=BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
@@ -241,7 +241,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 font=FONT_SMALL,
                 text_color=TEXT_MUTED,
                 anchor="w",
-                wraplength=300,
+                wraplength=max(300, window.winfo_width()),
                 justify="left",
             ).pack(fill="x")
 
