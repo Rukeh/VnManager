@@ -7,6 +7,11 @@ from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
 
+from PIL import ImageEnhance, Image as PilImage
+from io import BytesIO
+import requests as req
+from app.utils.image import round_image
+
 _search_executor = ThreadPoolExecutor(max_workers=2)
 _image_executor = ThreadPoolExecutor(max_workers=6)
 
@@ -80,31 +85,43 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
     results_frame.pack(fill="both", expand=True, padx=12, pady=10)
-   
-   #____image_related____
-    def _async_load_image(label, url, size):
-        key = (url, size)
-        if key in _image_cache:
-            img = _image_cache[key]
-        else:
-            img = load_image_from_url(url, size=size)
-            if img:
-                _image_cache[key] = img
-        if img:
-            def _apply():
-                if label.winfo_exists():
-                    label.configure(image=img, text="")
-                    label.image = img
-            label.after(0, _apply)
+    #_____for_image_____
+    def _async_load_with_hover(label, url, size, images):
+        """
+        Fetches an image, generates a dimmed version for hover, and applies the normal version to the label.
+        Args:
+            label:  The CTkLabel to update.
+            url:    Direct URL to the image.
+            size:   (width, height) tuple.
+            images: Dict with "normal" and "dimmed" keys to populate.
+        """
+        try:
+            response = req.get(url, timeout=5)
+            img_pil = PilImage.open(BytesIO(response.content)).convert("RGBA")
+            img_pil = img_pil.resize(size, PilImage.LANCZOS)
+            img_pil = round_image(img_pil, 10)
+        except Exception:
+            return
+        dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
+        dimmed_rgba = dimmed_rgb.convert("RGBA")
+        dimmed_rgba.putalpha(img_pil.getchannel("A"))
+        images["normal"] = customtkinter.CTkImage(img_pil, size=size)
+        images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
+        def _apply():
+            if label.winfo_exists():
+                label.configure(image=images["normal"])
+                label.image = images["normal"]
+        label.after(0, _apply)
 
-    def _submit_image(label, url, size):
-        future = _image_executor.submit(_async_load_image, label, url, size)
+    def _submit_image_hover(label, url, size, images):
+        future = _image_executor.submit(_async_load_with_hover, label, url, size, images)
         image_futures.append(future)
 
     def _cancel_image_tasks():
         for f in image_futures:
             f.cancel()
         image_futures.clear()
+
     #_________________________
     def _add_to_category(vn: dict) -> None:
         """Shows a small popup to pick a category, then saves the VN."""
@@ -217,17 +234,30 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             inner = customtkinter.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="both", padx=12, pady=12)
 
-            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color='transparent', corner_radius=10, cursor="hand2")
+            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
             cover_frame.pack(side="left", pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent", cursor="hand2")
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent", cursor="hand2", fg_color="transparent")
             img_label.pack(fill="both", expand=True)
-            if img_url:
-                _submit_image(img_label, img_url, (165, 200))
 
-            cover_frame.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
-            img_label.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+            _images = {"normal": None, "dimmed": None}
+            if img_url:
+                _submit_image_hover(img_label, img_url, (165, 200), _images)
+
+            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color="#c9a0b4")
+                if imgs["dimmed"]:
+                    lbl.configure(image=imgs["dimmed"])
+            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color=PINK_LIGHT)
+                if imgs["normal"]:
+                    lbl.configure(image=imgs["normal"])
+
+            for widget in (cover_frame, img_label):
+                widget.bind("<Enter>", on_enter)
+                widget.bind("<Leave>", on_leave)
+                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
             text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True)
@@ -288,17 +318,30 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
             card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color='transparent', corner_radius=10, cursor="hand2")
+            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
             cover_frame.pack(pady=(10, 6), padx=10)
-            cover_frame.pack_propagate(False)            
-            
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent", cursor="hand2")
-            img_label.pack(fill="both", expand=True)
-            if img_url:
-                _submit_image(img_label, img_url, (165, 200))
+            cover_frame.pack_propagate(False)
 
-            cover_frame.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
-            img_label.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent", cursor="hand2", fg_color="transparent")
+            img_label.pack(fill="both", expand=True)
+
+            _images = {"normal": None, "dimmed": None}
+            if img_url:
+                _submit_image_hover(img_label, img_url, (165, 200), _images)
+
+            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color="#c9a0b4")
+                if imgs["dimmed"]:
+                    lbl.configure(image=imgs["dimmed"])
+            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color=PINK_LIGHT)
+                if imgs["normal"]:
+                    lbl.configure(image=imgs["normal"])
+
+            for widget in (cover_frame, img_label):
+                widget.bind("<Enter>", on_enter)
+                widget.bind("<Leave>", on_leave)
+                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
             title_lbl = customtkinter.CTkLabel(card,
                 text=vn["title"],
