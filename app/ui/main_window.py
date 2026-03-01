@@ -5,12 +5,16 @@ import copy
 import re
 
 import customtkinter
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 from app.ui.search_window import open_search_window
 from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task
 from app.utils.text import clean_description
+
+from io import BytesIO
+import requests as req
+from app.utils.image import round_image
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
@@ -230,23 +234,6 @@ def run() -> None:
 
     # Renders for the vn panel
 
-    def _async_load_image(label, url, size) :
-        """
-        Fetches an image from a URL and applies it to a label once loaded.
-        Intended to be run in a background thread via submit_image_task.
-        Args:
-            label: The CTkLabel to update with the loaded image.
-            url:   Direct URL to the image.
-            size:  (width, height) tuple for the image.
-        """
-        img = load_image_from_url(url, size=size)
-        if img:
-            def _apply():
-                if label.winfo_exists():
-                    label.configure(image=img)
-                    label.image = img
-            label.after(0, _apply)
-
     def refresh_right_panel() -> None:
         """
         Re-renders the VN list for the currently selected category.
@@ -293,15 +280,56 @@ def run() -> None:
 
             cover_frame = customtkinter.CTkFrame(top_row, width=90, height=120, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
             cover_frame.pack(side="left", padx=(0, 10))
-            cover_frame.pack_propagate(False)                       
+            cover_frame.pack_propagate(False)
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font = ("Nunito", 24), cursor="hand2")
-            img_label.place(relx=0.5, rely=0.5, anchor='center')
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 24), cursor="hand2", fg_color="transparent")
+            img_label.place(relx=0.5, rely=0.5, anchor="center")
+
+            _images = {"normal": None, "dimmed": None}
+
+            def _async_load_with_hover(label, url, size, images):
+                """
+                Fetches an image, generates a dimmed version for hover, and applies the normal version to the label.
+                Args:
+                    label:  The CTkLabel to update.
+                    url:    Direct URL to the image.
+                    size:   (width, height) tuple.
+                    images: Dict with "normal" and "dimmed" keys to populate.
+                """
+                try:
+                    response = req.get(url, timeout=5)
+                    img_pil = Image.open(BytesIO(response.content)).convert("RGBA")
+                    img_pil = img_pil.resize(size, Image.LANCZOS)
+                    img_pil = round_image(img_pil, 10)
+                except Exception:
+                    return
+                dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
+                dimmed_rgba = dimmed_rgb.convert("RGBA")
+                dimmed_rgba.putalpha(img_pil.getchannel("A"))
+                images["normal"] = customtkinter.CTkImage(img_pil, size=size)
+                images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
+                def _apply():
+                    if label.winfo_exists():
+                        label.configure(image=images["normal"])
+                        label.image = images["normal"]
+                label.after(0, _apply)
+
             if img_url:
-                submit_image_task(_async_load_image, img_label, img_url, (150, 200))
+                submit_image_task(_async_load_with_hover, img_label, img_url, (90, 120), _images)
 
-            cover_frame.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
-            img_label.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
+            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color="#c9a0b4")
+                if imgs["dimmed"]:
+                    lbl.configure(image=imgs["dimmed"])
+            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                cf.configure(fg_color=PINK_LIGHT)
+                if imgs["normal"]:
+                    lbl.configure(image=imgs["normal"])
+
+            for widget in (cover_frame, img_label):
+                widget.bind("<Enter>", on_enter)
+                widget.bind("<Leave>", on_leave)
+                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
             customtkinter.CTkButton(
                 top_row, text="✕", width=26, height=26,
@@ -326,12 +354,12 @@ def run() -> None:
             title_lbl.pack(fill="x")
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
-            customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font= FONT_SMALL, anchor='w').pack(fill="x")
+            customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
 
             if rating:
                 rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
                 rating_frame.pack(anchor='w', pady=(4,0))
-                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font = ('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)            
+                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)            
             
             customtkinter.CTkLabel(
                 card,
