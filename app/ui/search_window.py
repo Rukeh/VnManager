@@ -3,6 +3,7 @@ import customtkinter
 from concurrent.futures import ThreadPoolExecutor
 
 from app.api.vndb import search_vns
+from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
 
@@ -216,27 +217,33 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             inner = customtkinter.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="both", padx=12, pady=12)
 
-            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color='transparent', corner_radius=10)
+            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color='transparent', corner_radius=10, cursor="hand2")
             cover_frame.pack(side="left", pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)
 
-
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent")
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent", cursor="hand2")
             img_label.pack(fill="both", expand=True)
             if img_url:
                 _submit_image(img_label, img_url, (165, 200))
 
+            cover_frame.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+            img_label.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+
             text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True)
 
-            customtkinter.CTkLabel(
+            title_lbl = customtkinter.CTkLabel(
                 text_frame,
                 text=vn["title"],
                 font=FONT_H2,
                 text_color=TEXT,
                 anchor="w",
                 wraplength=380,
-            ).pack(fill="x")
+                cursor="hand2",
+            )
+            title_lbl.pack(fill="x")
+            title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+
             year_rat = year
             if rating:
                 year_rat += f"   ★ {rating:.2f}"
@@ -281,23 +288,28 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
             card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color='transparent', corner_radius=10)
+            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color='transparent', corner_radius=10, cursor="hand2")
             cover_frame.pack(pady=(10, 6), padx=10)
             cover_frame.pack_propagate(False)            
             
-            
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent")
+            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent", cursor="hand2")
             img_label.pack(fill="both", expand=True)
             if img_url:
                 _submit_image(img_label, img_url, (165, 200))
 
-            customtkinter.CTkLabel(card,
-            text=vn["title"],
+            cover_frame.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+            img_label.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+
+            title_lbl = customtkinter.CTkLabel(card,
+                text=vn["title"],
                 font=("Nunito", 12, "bold"), 
                 text_color=TEXT,
                 wraplength=130,
                 justify="center",
-            ).pack(padx=6)
+                cursor="hand2",
+            )
+            title_lbl.pack(padx=6)
+            title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
             customtkinter.CTkLabel(
                 card, text=year,
