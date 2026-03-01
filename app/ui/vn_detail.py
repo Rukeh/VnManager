@@ -77,7 +77,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     cover_frame.pack(side="left", padx=(0, 16))
     cover_frame.pack_propagate(False)
 
-    img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 32))
+    img_label = customtkinter.CTkLabel(cover_frame, text="", font=("Nunito", 32))
     img_label.place(relx=0.5, rely=0.5, anchor="center")
 
     img_url = (vn.get("image") or {}).get("url", "")

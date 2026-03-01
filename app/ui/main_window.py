@@ -310,7 +310,7 @@ def run() -> None:
                 images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
                 def _apply():
                     if label.winfo_exists():
-                        label.configure(image=images["normal"])
+                        label.configure(image=images["normal"], text="")
                         label.image = images["normal"]
                 label.after(0, _apply)
 
