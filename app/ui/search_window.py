@@ -137,12 +137,19 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
 
+        customtkinter.CTkButton(
+            popup, text="✕ Close", width=80, height=30,
+            fg_color=PINK_LIGHT, hover_color=PINK_MID,
+            text_color=PINK_DARK, font=FONT_TITLE, corner_radius=20,
+            command=popup.destroy,
+        ).place(x=260, y= 10)
+
         customtkinter.CTkLabel(popup, 
             text=f'Add "{vn["title"]}" to :', 
             font= FONT_TITLE,
             text_color=TEXT,
             wraplength=260,
-        ).pack(pady=(16,8))
+        ).pack(pady=(35,8))
 
         var = tkinter.StringVar(value=categories[0])
         customtkinter.CTkOptionMenu(popup, 
