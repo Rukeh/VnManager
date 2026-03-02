@@ -363,7 +363,7 @@ def run() -> None:
             
             customtkinter.CTkLabel(
                 card,
-                text=clean_description(vn.get("description")),
+                text=clean_description(vn.get("description"), 300),
                 font=FONT_SMALL,
                 text_color=TEXT_MUTED,
                 anchor="w",

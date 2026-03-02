@@ -1,9 +1,7 @@
 import re
 
-MAX_DESCRIPTION_LENGTH = 1000
 
-
-def clean_description(text):
+def clean_description(text, MAX_DESCRIPTION_LENGTH=9999):
     """
     Strips VNDB BBCode markup from a description string and truncates it.
     Args:
