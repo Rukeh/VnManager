@@ -568,6 +568,7 @@ def run() -> None:
         popup = customtkinter.CTkToplevel(app)
         popup.title("Delete category")
         popup.geometry("300x110")
+        popup.configure(fg_color=SIDEBAR_BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
@@ -575,6 +576,8 @@ def run() -> None:
         customtkinter.CTkLabel(
             popup,
             text=f'Delete "{name}"?\nAll VNs in it will be removed.',
+            font= FONT_TITLE,
+            text_color=TEXT,
             wraplength=260,
         ).pack(pady=14)
 
@@ -594,8 +597,8 @@ def run() -> None:
                         widget.destroy()
                 refresh_categories()
 
-        customtkinter.CTkButton(btn_frame, text="Cancel", width=80, command=popup.destroy).pack(side="left", padx=8)
-        customtkinter.CTkButton(btn_frame, text="Delete", width=80, fg_color="#7a2020", hover_color="#5a1515", command=confirm).pack(side="left", padx=8)
+        customtkinter.CTkButton(btn_frame, text="Cancel", width=80, text_color='#fff', fg_color=PINK_MID, hover_color='#f7b2d9', command=popup.destroy).pack(side="left", padx=8)
+        customtkinter.CTkButton(btn_frame, text="Delete", width=80, text_color='#fff', fg_color='#db6098', hover_color="#d41167", command=confirm).pack(side="left", padx=8)
 
     refresh_categories()
     app.mainloop()
