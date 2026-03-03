@@ -1,20 +1,7 @@
 import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task
 from app.utils.text import clean_description
-
-BG          = "#fff8f9"
-CARD_BG     = "#ffffff"
-PINK        = "#f472b6"
-PINK_LIGHT  = "#fce7f3"
-PINK_MID    = "#fbcfe8"
-PINK_DARK   = "#db2777"
-TEXT        = "#3d2535"
-TEXT_MUTED  = "#b07090"
-BORDER      = "#fad4e8"
-FONT_TITLE  = ("Nunito", 13, "bold")
-FONT_BODY   = ("Quicksand", 12)
-FONT_SMALL  = ("Quicksand", 11)
-
+from app.ui.theme import *
 
 def open_vn_detail(parent, vn: dict) -> None:
     """
