@@ -397,60 +397,90 @@ def run() -> None:
     def move_vn(category: str, vn: dict) -> None:
         other_cats = [c for c in data["categories"] if c != category]
         if not other_cats:
-            return
+            popup = customtkinter.CTkToplevel(app)
+            popup.title("Error")
+            popup.geometry("300x150")
+            popup.configure(fg_color=BG)
+            popup.resizable(False,False)
+            popup.after(50, lambda: popup.lift())
+            popup.after(50, lambda: popup.focus_force())
 
-        popup = customtkinter.CTkToplevel(app)
-        popup.title("Move to category")
-        popup.geometry("350x170")
-        popup.configure(fg_color=BG)
-        popup.resizable(False, False)
-        popup.after(50, lambda: popup.lift())
-        popup.after(50, lambda: popup.focus_force())
+            def close():
+                popup.destroy()
 
-        customtkinter.CTkLabel(
-            popup,
-            text=f'Move "{vn["title"]}" to:',
-            font=FONT_TITLE,
-            text_color=TEXT,
-            wraplength=260,
-        ).pack(pady=(20, 8))
+            customtkinter.CTkLabel(
+                popup,
+                text="You can't move a vn to another category if you don't have any other categories !",
+                font=FONT_TITLE,
+                text_color=TEXT,
+                wraplength=200
+                ).pack(pady=(20, 8))
 
-        var = tkinter.StringVar(value=other_cats[0])
-        customtkinter.CTkOptionMenu(
-            popup,
-            values=other_cats,
-            variable=var,
-            fg_color=PINK_LIGHT,
-            button_color=PINK,
-            button_hover_color=PINK_DARK,
-            text_color=PINK_DARK,
-            font=("Nunito", 12, "bold"),
-            dropdown_fg_color=CARD_BG,
-            corner_radius=10,
-        ).pack(padx=20, fill="x")
+            customtkinter.CTkButton(
+                popup,
+                text="OK",
+                width=100,
+                fg_color=PINK,
+                hover_color=PINK_DARK,
+                text_color="#fff",
+                font=FONT_TITLE,
+                corner_radius=20,
+                command=popup.destroy
+            ).pack(side='bottom', pady=12)
 
-        def confirm():
-            dest = var.get()
-            data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
-            vns_in_dest = data["vns"].setdefault(dest, [])
-            if not any(v["id"] == vn["id"] for v in vns_in_dest):
-                vns_in_dest.append(vn)
-            save_data(data)
-            refresh_right_panel()
-            refresh_categories()
-            popup.destroy()
+        else:
+            popup = customtkinter.CTkToplevel(app)
+            popup.title("Move to category")
+            popup.geometry("350x170")
+            popup.configure(fg_color=BG)
+            popup.resizable(False, False)
+            popup.after(50, lambda: popup.lift())
+            popup.after(50, lambda: popup.focus_force())
 
-        customtkinter.CTkButton(
-            popup,
-            text="Move",
-            width=100,
-            fg_color=PINK,
-            hover_color=PINK_DARK,
-            text_color="#fff",
-            font=FONT_TITLE,
-            corner_radius=20,
-            command=confirm,
-        ).pack(pady=12)
+            customtkinter.CTkLabel(
+                popup,
+                text=f'Move "{vn["title"]}" to:',
+                font=FONT_TITLE,
+                text_color=TEXT,
+                wraplength=260
+            ).pack(pady=(20, 8))
+
+            var = tkinter.StringVar(value=other_cats[0])
+            customtkinter.CTkOptionMenu(
+                popup,
+                values=other_cats,
+                variable=var,
+                fg_color=PINK_LIGHT,
+                button_color=PINK,
+                button_hover_color=PINK_DARK,
+                text_color=PINK_DARK,
+                font=("Nunito", 12, "bold"),
+                dropdown_fg_color=CARD_BG,
+                corner_radius=10,
+            ).pack(padx=20, fill="x")
+
+            def confirm():
+                dest = var.get()
+                data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
+                vns_in_dest = data["vns"].setdefault(dest, [])
+                if not any(v["id"] == vn["id"] for v in vns_in_dest):
+                    vns_in_dest.append(vn)
+                save_data(data)
+                refresh_right_panel()
+                refresh_categories()
+                popup.destroy()
+
+            customtkinter.CTkButton(
+                popup,
+                text="Move",
+                width=100,
+                fg_color=PINK,
+                hover_color=PINK_DARK,
+                text_color="#fff",
+                font=FONT_TITLE,
+                corner_radius=20,
+                command=confirm,
+            ).pack(pady=12)
 
     def select_category(name: str) -> None:
         """
