@@ -351,15 +351,16 @@ def run() -> None:
             if rating:
                 rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
                 rating_frame.pack(anchor='w', pady=(4,0))
-                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)         
-            
+                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)    
+            render_tags(text_frame, vn)     
+
             customtkinter.CTkLabel(
                 card,
-                text=clean_description(vn.get("description"), 300),
+                text=clean_description(vn.get("description"), 500),
                 font=FONT_SMALL,
                 text_color=TEXT_MUTED,
                 anchor="w",
-                wraplength=300,
+                wraplength=250,
                 justify="left"
             ).pack(fill="x", padx=12, pady=(8, 12))
 

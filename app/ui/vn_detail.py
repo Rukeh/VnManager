@@ -121,6 +121,8 @@ def open_vn_detail(parent, vn: dict) -> None:
     if vn.get("id"):
         _meta_row("VNDB ID", vn["id"])
 
+    render_tags(meta, vn, max_tags=8)
+
     #divider frame
     customtkinter.CTkFrame(body, fg_color=BORDER, height=1, corner_radius=0).pack(fill="x", pady=(4, 12))
 

@@ -262,7 +262,9 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             year_rat = year
             if rating:
                 year_rat += f"   ★ {rating:.2f}"
-            customtkinter.CTkLabel(text_frame, text=year_rat,font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",).pack(fill="x", pady=(1, 4))            
+            customtkinter.CTkLabel(text_frame, text=year_rat,font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",).pack(fill="x", pady=(1, 4))     
+
+            render_tags(text_frame, vn)       
 
             customtkinter.CTkLabel(
                 text_frame,
