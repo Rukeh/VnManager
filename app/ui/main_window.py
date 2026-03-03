@@ -511,7 +511,7 @@ def run() -> None:
                 width=28,
                 height=28,
                 fg_color="transparent",
-                hover_color="#5a2020",
+                hover_color=PINK_MID,
                 text_color="#cc4444",
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
