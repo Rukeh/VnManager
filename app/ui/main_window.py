@@ -12,6 +12,7 @@ from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task
 from app.utils.text import clean_description
 from app.ui.theme import *
+from app.ui.components import render_tags
 
 from io import BytesIO
 import requests as req
@@ -350,7 +351,7 @@ def run() -> None:
             if rating:
                 rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
                 rating_frame.pack(anchor='w', pady=(4,0))
-                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)            
+                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)         
             
             customtkinter.CTkLabel(
                 card,

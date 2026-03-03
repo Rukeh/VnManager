@@ -6,6 +6,7 @@ from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url
 from app.utils.text import clean_description
+from app.ui.components import render_tags
 
 from PIL import ImageEnhance, Image as PilImage
 from io import BytesIO

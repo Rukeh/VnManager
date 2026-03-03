@@ -2,6 +2,7 @@ import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task
 from app.utils.text import clean_description
 from app.ui.theme import *
+from app.ui.components import render_tags
 
 def open_vn_detail(parent, vn: dict) -> None:
     """
