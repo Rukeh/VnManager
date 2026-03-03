@@ -380,21 +380,18 @@ def run() -> None:
         if not other_cats:
             popup = customtkinter.CTkToplevel(app)
             popup.title("Error")
-            popup.geometry("300x150")
+            popup.geometry("400x125")
             popup.configure(fg_color=BG)
             popup.resizable(False,False)
             popup.after(50, lambda: popup.lift())
             popup.after(50, lambda: popup.focus_force())
 
-            def close():
-                popup.destroy()
-
             customtkinter.CTkLabel(
                 popup,
                 text="You can't move a vn to another category if you don't have any other categories !",
-                font=FONT_TITLE,
+                font=("Nunito", 16, "bold"),
                 text_color=TEXT,
-                wraplength=200
+                wraplength=350
                 ).pack(pady=(20, 8))
 
             customtkinter.CTkButton(
