@@ -17,3 +17,13 @@ def clean_description(text, MAX_DESCRIPTION_LENGTH=9999):
     if len(text) > MAX_DESCRIPTION_LENGTH:
         text = text[:MAX_DESCRIPTION_LENGTH].rsplit(' ', 1)[0] + '...'
     return text
+
+def get_clean_tags(vn: dict, max_tags: int = 4, include_spoilers: bool = False) -> list[str]:
+    """
+    Returns a filtered, sorted list of tag name strings from a VN dict.
+    Filters out spoilers (unless include_spoilers=True), lies, and sorts by rating desc.
+    """
+    tags = vn.get("tags") or []
+    tags = [t for t in tags if not t.get("lie") and (include_spoilers or t.get("spoiler", 0) == 0)]
+    tags.sort(key=lambda t: t.get("rating", 0), reverse=True)
+    return [t["name"] for t in tags[:max_tags]]
