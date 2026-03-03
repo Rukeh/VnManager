@@ -18,6 +18,8 @@ from app.utils.image import round_image
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
+##########Need to code something to make the title label and description label of the vns change their wraplength based on window width (not forgetting to refresh on every width change) 
+
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
 _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
@@ -338,6 +340,14 @@ def run() -> None:
                 corner_radius=13,
                 command=lambda v=vn: remove_vn(cat, v),
             ).pack(side="right", anchor="n")
+
+            customtkinter.CTkButton(
+                top_row, text="↪", width=26, height=26,
+                fg_color=PINK_LIGHT, hover_color=PINK,
+                text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+                corner_radius=13,
+                command=lambda v=vn: move_vn(cat, v),
+            ).pack(side="right", anchor="n", padx=(0, 4))
             
             text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True)
@@ -348,7 +358,7 @@ def run() -> None:
                 font=FONT_H2,
                 text_color=TEXT,
                 anchor="w",
-                wraplength=240,
+                wraplength=200,
                 cursor="hand2",
             )
             title_lbl.pack(fill="x")
@@ -383,6 +393,64 @@ def run() -> None:
         data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
         save_data(data)
         refresh_right_panel()
+
+    def move_vn(category: str, vn: dict) -> None:
+        other_cats = [c for c in data["categories"] if c != category]
+        if not other_cats:
+            return
+
+        popup = customtkinter.CTkToplevel(app)
+        popup.title("Move to category")
+        popup.geometry("350x170")
+        popup.configure(fg_color=BG)
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text=f'Move "{vn["title"]}" to:',
+            font=FONT_TITLE,
+            text_color=TEXT,
+            wraplength=260,
+        ).pack(pady=(20, 8))
+
+        var = tkinter.StringVar(value=other_cats[0])
+        customtkinter.CTkOptionMenu(
+            popup,
+            values=other_cats,
+            variable=var,
+            fg_color=PINK_LIGHT,
+            button_color=PINK,
+            button_hover_color=PINK_DARK,
+            text_color=PINK_DARK,
+            font=("Nunito", 12, "bold"),
+            dropdown_fg_color=CARD_BG,
+            corner_radius=10,
+        ).pack(padx=20, fill="x")
+
+        def confirm():
+            dest = var.get()
+            data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
+            vns_in_dest = data["vns"].setdefault(dest, [])
+            if not any(v["id"] == vn["id"] for v in vns_in_dest):
+                vns_in_dest.append(vn)
+            save_data(data)
+            refresh_right_panel()
+            refresh_categories()
+            popup.destroy()
+
+        customtkinter.CTkButton(
+            popup,
+            text="Move",
+            width=100,
+            fg_color=PINK,
+            hover_color=PINK_DARK,
+            text_color="#fff",
+            font=FONT_TITLE,
+            corner_radius=20,
+            command=confirm,
+        ).pack(pady=12)
 
     def select_category(name: str) -> None:
         """
