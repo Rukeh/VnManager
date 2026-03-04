@@ -283,23 +283,25 @@ def run() -> None:
                 widget.bind("<Enter>", on_enter)
                 widget.bind("<Leave>", on_leave)
                 widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
+            btn_col = customtkinter.CTkFrame(top_row, fg_color="transparent")
+            btn_col.pack(side="right", anchor="n", padx=(4, 0))
 
             customtkinter.CTkButton(
-                top_row, text="✕", width=26, height=26,
+                btn_col, text="✕", width=26, height=26,
                 fg_color=PINK_LIGHT, hover_color=PINK,
                 text_color=PINK_DARK, font=("Nunito", 12, "bold"),
                 corner_radius=13,
                 command=lambda v=vn: remove_vn(cat, v),
-            ).pack(side="right", anchor="n")
+            ).pack(pady=(0, 4))
 
             customtkinter.CTkButton(
-                top_row, text="↪", width=26, height=26,
+                btn_col, text="↪", width=26, height=26,
                 fg_color=PINK_LIGHT, hover_color=PINK,
                 text_color=PINK_DARK, font=("Nunito", 12, "bold"),
                 corner_radius=13,
                 command=lambda v=vn: move_vn(cat, v),
-            ).pack(side="right", anchor="n", padx=(0, 4))
-            
+            ).pack()
+
             text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
             text_frame.pack(side="left", fill="both", expand=True)
 
@@ -312,7 +314,7 @@ def run() -> None:
                 wraplength=200,
                 cursor="hand2",
             )
-            title_lbl.pack(fill="x", pady=30)
+            title_lbl.pack(fill="x")
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
             customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
@@ -320,7 +322,7 @@ def run() -> None:
             if rating:
                 rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
                 rating_frame.pack(anchor='w', pady=(4,0))
-                customtkinter.CTkLabel(rating_frame, text=f"★ {rating:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)    
+                customtkinter.CTkLabel(rating_frame, text=f"★ {rating/10:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)    
             render_tags(text_frame, vn)     
 
             customtkinter.CTkLabel(
@@ -333,18 +335,19 @@ def run() -> None:
                 justify="left"
             ).pack(fill="x", padx=12, pady=(8, 4))
 
-            #Notes frame
+            # Notes section
             notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8)
             notes_bar.pack(fill="x", padx=12, pady=(0, 10))
 
             note_text = vn.get("notes", "").strip()
+            note_preview = (note_text[:60] + "…") if len(note_text) > 60 else note_text
             notes_label = customtkinter.CTkLabel(
                 notes_bar,
-                text=f"📝  {note_text}" if note_text else "📝  Add a note...",
+                text=f"📝  {note_preview}" if note_text else "📝  Add a note...",
                 font=FONT_SMALL,
                 text_color=TEXT if note_text else TEXT_MUTED,
                 anchor="w",
-                wraplength=280,
+                wraplength=0,
                 justify="left",
                 cursor="hand2",
             )
@@ -409,8 +412,9 @@ def run() -> None:
             vn["notes"] = note
             save_data(data)
             if notes_label.winfo_exists():
+                note_preview = (note[:60] + "…") if len(note) > 60 else note
                 notes_label.configure(
-                    text=f"📝  {note}" if note else "📝  Add a note...",
+                    text=f"📝  {note_preview}" if note else "📝  Add a note...",
                     text_color=TEXT if note else TEXT_MUTED,
                 )
             popup.destroy()

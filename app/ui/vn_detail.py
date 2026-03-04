@@ -107,7 +107,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     _meta_row("Released", vn.get("released") or "Unknown")
 
     rating = vn.get("rating")
-    _meta_row("Rating", f"★ {rating:.2f} / 10" if rating else "N/A")
+    _meta_row("Rating", f"★ {rating / 10:.2f} / 10" if rating else "N/A")
 
     length_map = {1: "Very short (<2h)", 2: "Short (2-10h)", 3: "Medium (10-30h)", 4: "Long (30-50h)", 5: "Very long (>50h)"}
     _meta_row("Length", length_map.get(vn.get("length"), "Unknown"))
