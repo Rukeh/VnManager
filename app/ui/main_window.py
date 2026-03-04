@@ -14,10 +14,6 @@ from app.utils.text import clean_description
 from app.ui.theme import *
 from app.ui.components import render_tags
 
-from io import BytesIO
-import requests as req
-from app.utils.image import round_image
-
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
 ##########Need to code something to make the title label and description label of the vns change their wraplength based on window width (not forgetting to refresh on every width change) 
@@ -316,7 +312,7 @@ def run() -> None:
                 wraplength=200,
                 cursor="hand2",
             )
-            title_lbl.pack(fill="x")
+            title_lbl.pack(fill="x", pady=30)
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
             customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
@@ -335,7 +331,25 @@ def run() -> None:
                 anchor="w",
                 wraplength=250,
                 justify="left"
-            ).pack(fill="x", padx=12, pady=(8, 12))
+            ).pack(fill="x", padx=12, pady=(8, 4))
+
+            #Notes frame
+            notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8)
+            notes_bar.pack(fill="x", padx=12, pady=(0, 10))
+
+            note_text = vn.get("notes", "").strip()
+            notes_label = customtkinter.CTkLabel(
+                notes_bar,
+                text=f"📝  {note_text}" if note_text else "📝  Add a note...",
+                font=FONT_SMALL,
+                text_color=TEXT if note_text else TEXT_MUTED,
+                anchor="w",
+                wraplength=280,
+                justify="left",
+                cursor="hand2",
+            )
+            notes_label.pack(side="left", fill="x", expand=True, padx=(8, 4), pady=6)
+            notes_label.bind("<Button-1>", lambda _e, v=vn, lbl=notes_label: open_notes_popup(cat, v, lbl))
 
     search_var.trace_add("write", lambda *_: refresh_right_panel())
 
@@ -349,6 +363,64 @@ def run() -> None:
         data["vns"][category] = [v for v in data["vns"].get(category, []) if v["id"] != vn["id"]]
         save_data(data)
         refresh_right_panel()
+
+    def open_notes_popup(category: str, vn: dict, notes_label) -> None:
+        """
+        Opens a small popup to edit the personal note for a VN in a category.
+        Saves the note back into the VN dict and updates the label in-place.
+        Args:
+            category:    The category the VN belongs to.
+            vn:          The VN dict to attach the note to.
+            notes_label: The CTkLabel on the card to update after saving.
+        """
+        popup = customtkinter.CTkToplevel(app)
+        popup.title("Note")
+        popup.geometry("360x200")
+        popup.configure(fg_color=BG)
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text=f"📝  Note for {vn['title']}",
+            font=FONT_TITLE,
+            text_color=TEXT,
+            wraplength=320,
+            anchor="w",
+        ).pack(fill="x", padx=16, pady=(16, 8))
+
+        text_box = customtkinter.CTkTextbox(
+            popup,
+            height=80,
+            font=FONT_BODY,
+            fg_color=PINK_SOFT,
+            border_color=BORDER,
+            border_width=1,
+            text_color=TEXT,
+            corner_radius=8,
+        )
+        text_box.pack(fill="x", padx=16)
+        text_box.insert("0.0", vn.get("notes", ""))
+        text_box.focus_set()
+
+        def confirm():
+            note = text_box.get("0.0", "end").strip()
+            vn["notes"] = note
+            save_data(data)
+            if notes_label.winfo_exists():
+                notes_label.configure(
+                    text=f"📝  {note}" if note else "📝  Add a note...",
+                    text_color=TEXT if note else TEXT_MUTED,
+                )
+            popup.destroy()
+
+        btn_row = customtkinter.CTkFrame(popup, fg_color="transparent")
+        btn_row.pack(pady=12)
+        customtkinter.CTkButton(btn_row, text="Cancel", width=80, fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK, font=FONT_TITLE, corner_radius=20, command=popup.destroy).pack(side="left", padx=6)
+        customtkinter.CTkButton(btn_row, text="Save", width=80, fg_color=PINK, hover_color=PINK_DARK, text_color="#fff", font=FONT_TITLE, corner_radius=20, command=confirm).pack(side="left", padx=6)
+
+        popup.bind("<Escape>", lambda _e: popup.destroy())
 
     def move_vn(category: str, vn: dict) -> None:
         other_cats = [c for c in data["categories"] if c != category]
