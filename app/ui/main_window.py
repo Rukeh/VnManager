@@ -9,7 +9,7 @@ from PIL import Image, ImageEnhance
 
 from app.ui.search_window import open_search_window
 from app.ui.vn_detail import open_vn_detail
-from app.utils.image import load_image_from_url, submit_image_task
+from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
 from app.utils.text import clean_description
 from app.ui.theme import *
 from app.ui.components import render_tags
@@ -271,35 +271,8 @@ def run() -> None:
 
             _images = {"normal": None, "dimmed": None}
 
-            def _async_load_with_hover(label, url, size, images):
-                """
-                Fetches an image, generates a dimmed version for hover, and applies the normal version to the label.
-                Args:
-                    label:  The CTkLabel to update.
-                    url:    Direct URL to the image.
-                    size:   (width, height) tuple.
-                    images: Dict with "normal" and "dimmed" keys to populate.
-                """
-                try:
-                    response = req.get(url, timeout=5)
-                    img_pil = Image.open(BytesIO(response.content)).convert("RGBA")
-                    img_pil = img_pil.resize(size, Image.LANCZOS)
-                    img_pil = round_image(img_pil, 10)
-                except Exception:
-                    return
-                dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
-                dimmed_rgba = dimmed_rgb.convert("RGBA")
-                dimmed_rgba.putalpha(img_pil.getchannel("A"))
-                images["normal"] = customtkinter.CTkImage(img_pil, size=size)
-                images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
-                def _apply():
-                    if label.winfo_exists():
-                        label.configure(image=images["normal"], text="")
-                        label.image = images["normal"]
-                label.after(0, _apply)
-
             if img_url:
-                submit_image_task(_async_load_with_hover, img_label, img_url, (90, 120), _images)
+                submit_image_task(async_load_with_hover, img_label, img_url, (90, 120), _images)
 
             def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
                 cf.configure(fg_color="#c9a0b4")
