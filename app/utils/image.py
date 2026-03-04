@@ -1,6 +1,6 @@
 import requests
 import customtkinter
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 
@@ -43,3 +43,40 @@ def round_image(img: Image.Image, radius: int) -> Image.Image:
     result = img.convert("RGBA")
     result.putalpha(mask)
     return result
+
+def async_load_with_hover(label, url: str, size: tuple, images: dict) -> None:
+    """
+    Fetches an image, generates a dimmed version for hover, and applies
+    the normal version to the label. Intended to be run in a thread via
+    submit_image_task.
+
+    Populates images["normal"] and images["dimmed"] with CTkImage instances,
+    then schedules a UI update on the main thread via label.after().
+
+    Args:
+        label:  The CTkLabel to update once the image is loaded.
+        url:    Direct URL to the image.
+        size:   (width, height) tuple for the image.
+        images: Dict with "normal" and "dimmed" keys to populate.
+    """
+    try:
+        response = _session.get(url, timeout=5)
+        img_pil = Image.open(BytesIO(response.content)).convert("RGBA")
+        img_pil = img_pil.resize(size, Image.LANCZOS)
+        img_pil = round_image(img_pil, 10)
+    except Exception:
+        return
+
+    dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
+    dimmed_rgba = dimmed_rgb.convert("RGBA")
+    dimmed_rgba.putalpha(img_pil.getchannel("A"))
+
+    images["normal"] = customtkinter.CTkImage(img_pil, size=size)
+    images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
+
+    def _apply():
+        if label.winfo_exists():
+            label.configure(image=images["normal"], text="")
+            label.image = images["normal"]
+
+    label.after(0, _apply)
