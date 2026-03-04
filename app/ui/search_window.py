@@ -4,18 +4,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
-from app.utils.image import load_image_from_url
+from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
 from app.utils.text import clean_description
 from app.ui.components import render_tags
 
-from PIL import ImageEnhance, Image as PilImage
-from io import BytesIO
-import requests as req
-from app.utils.image import round_image
 from app.ui.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
-_image_executor = ThreadPoolExecutor(max_workers=6)
 
 #this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
 _image_cache = {}
@@ -70,36 +65,9 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
     results_frame.pack(fill="both", expand=True, padx=12, pady=10)
-    #_____for_image_____
-    def _async_load_with_hover(label, url, size, images):
-        """
-        Fetches an image, generates a dimmed version for hover, and applies the normal version to the label.
-        Args:
-            label:  The CTkLabel to update.
-            url:    Direct URL to the image.
-            size:   (width, height) tuple.
-            images: Dict with "normal" and "dimmed" keys to populate.
-        """
-        try:
-            response = req.get(url, timeout=5)
-            img_pil = PilImage.open(BytesIO(response.content)).convert("RGBA")
-            img_pil = img_pil.resize(size, PilImage.LANCZOS)
-            img_pil = round_image(img_pil, 10)
-        except Exception:
-            return
-        dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
-        dimmed_rgba = dimmed_rgb.convert("RGBA")
-        dimmed_rgba.putalpha(img_pil.getchannel("A"))
-        images["normal"] = customtkinter.CTkImage(img_pil, size=size)
-        images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
-        def _apply():
-            if label.winfo_exists():
-                label.configure(image=images["normal"], text="")
-                label.image = images["normal"]
-        label.after(0, _apply)
 
     def _submit_image_hover(label, url, size, images):
-        future = _image_executor.submit(_async_load_with_hover, label, url, size, images)
+        future = submit_image_task(async_load_with_hover, label, url, size, images)
         image_futures.append(future)
 
     def _cancel_image_tasks():
