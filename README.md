@@ -32,7 +32,7 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 - Rename and delete categories whenever you feel like reorganising
 - Filter VNs within a category using the top search bar
 - Sort by date added, title, rating, release date, or length (may not be fully functionnal WIP)
-- Everything saves locally in `data/save.json` — no account, no cloud, just yours
+- Everything saves locally in `data/save.json` no account, no cloud, just yours
 
 ---
 
