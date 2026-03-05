@@ -212,6 +212,13 @@ def run() -> None:
     vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent", scrollbar_button_color=PINK_MID)
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
 
+    #maths
+
+    def _card_wraplength() -> int:
+        return max(120, (right_panel.winfo_width() // 2) - 165)
+    
+    
+    
     # Renders for the vn panel
 
     def refresh_right_panel() -> None:
@@ -307,11 +314,11 @@ def run() -> None:
 
             title_lbl = customtkinter.CTkLabel(
                 text_frame,
-                text=f"{vn['title']} ({year})",
+                text=f"{vn['title']}",
                 font=FONT_H2,
                 text_color=TEXT,
                 anchor="w",
-                wraplength=200,
+                wraplength=_card_wraplength(),
                 cursor="hand2",
             )
             title_lbl.pack(fill="x")
@@ -323,7 +330,7 @@ def run() -> None:
                 rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
                 rating_frame.pack(anchor='w', pady=(4,0))
                 customtkinter.CTkLabel(rating_frame, text=f"★ {rating/10:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)    
-            render_tags(text_frame, vn)     
+            render_tags(text_frame, vn, max_tags=5)     
 
             customtkinter.CTkLabel(
                 card,
@@ -331,7 +338,7 @@ def run() -> None:
                 font=FONT_SMALL,
                 text_color=TEXT_MUTED,
                 anchor="w",
-                wraplength=250,
+                wraplength=_card_wraplength(),
                 justify="left"
             ).pack(fill="x", padx=12, pady=(8, 4))
 
@@ -355,6 +362,17 @@ def run() -> None:
             notes_label.bind("<Button-1>", lambda _e, v=vn, lbl=notes_label: open_notes_popup(cat, v, lbl))
 
     search_var.trace_add("write", lambda *_: refresh_right_panel())
+
+    _resize_job_main = [None]
+
+    def _on_main_resize(event):
+        if event.widget != app:
+            return
+        if _resize_job_main[0]:
+            app.after_cancel(_resize_job_main[0])
+        _resize_job_main[0] = app.after(150, refresh_right_panel)
+
+    app.bind("<Configure>", _on_main_resize)
 
     def remove_vn(category: str, vn: dict) -> None:
         """
