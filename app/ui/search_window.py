@@ -234,15 +234,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
             render_tags(text_frame, vn)       
 
-            customtkinter.CTkLabel(
+            desc_lbl = customtkinter.CTkLabel(
                 text_frame,
                 text=clean_description(vn.get("description")),
                 font=FONT_SMALL,
                 text_color=TEXT_MUTED,
                 anchor="w",
-                wraplength=max(300, window.winfo_width()),
+                wraplength=300,
                 justify="left",
-            ).pack(fill="x")
+            )
+            desc_lbl.pack(fill="x")
+            desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
 
             customtkinter.CTkButton(
                 text_frame,
@@ -308,6 +310,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             )
             title_lbl.pack(padx=6)
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+            title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
 
             customtkinter.CTkLabel(
                 card, text=year,
