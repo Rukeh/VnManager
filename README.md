@@ -27,7 +27,7 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 - Add VNs to custom categories (defaults: Not finished, Finished, Planned)
 - Covers, ratings, tags, and descriptions displayed at glance
 - Click any cover or title to open a full detail popup
-- Leave personal notes on any VN in your library 📝
+- Leave personal notes on any VN in your library
 - Move VNs between categories with easily 
 - Rename and delete categories whenever you feel like reorganising
 - Filter VNs within a category using the top search bar
