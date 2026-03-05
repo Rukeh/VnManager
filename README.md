@@ -52,7 +52,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-> **For information:** As the project is still in early build its not a recommended way to download it but its all there is for now; An executable file for windows will be available in version 0.2
+> **For information:** As the project is still in early build, its not a recommended way to download it, but its all there is for now; An executable file for windows will be available in version 0.2
 
 > **Linux/Wayland:** If the window doesn't open, try `GDK_BACKEND=x11 python main.py`
 
