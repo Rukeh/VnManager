@@ -30,7 +30,10 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
     image_futures: list = []    
-    
+
+    def _get_vn_categories(vn_id: str) -> list[str]:
+        return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
+
     #___________Header__________
     
     top_bar = customtkinter.CTkFrame(window, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=0, height=64)
@@ -145,6 +148,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 if on_vn_added:
                     on_vn_added()
             popup.destroy()
+            if last_results:
+                render_results(last_results)
 
         customtkinter.CTkButton(popup, 
         text="+ Add", 
@@ -226,6 +231,18 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             )
             title_lbl.pack(fill="x")
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+
+            cats = _get_vn_categories(vn["id"])
+            if cats:
+                customtkinter.CTkLabel(
+                    text_frame,
+                    text="✓  " + ", ".join(cats),
+                    font=("Nunito", 11, "bold"),
+                    text_color="#9b6dbd",
+                    fg_color="#e8d5f5",
+                    corner_radius=20,
+                    anchor="w",
+                ).pack(anchor="w", pady=(2, 4))
 
             year_rat = year
             if rating:
@@ -311,6 +328,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             title_lbl.pack(padx=6)
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
             title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
+
+            cats = _get_vn_categories(vn["id"])
+            if cats:
+                customtkinter.CTkLabel(
+                    card,
+                    text="✓  " + ", ".join(cats),
+                    font=("Nunito", 10, "bold"),
+                    text_color="#9b6dbd",
+                    fg_color="#e8d5f5",
+                    corner_radius=20,
+                ).pack(pady=(2, 4), padx=6)
 
             customtkinter.CTkLabel(
                 card, text=year,
