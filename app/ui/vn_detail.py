@@ -75,20 +75,25 @@ def open_vn_detail(parent, vn: dict) -> None:
     meta = customtkinter.CTkFrame(top, fg_color="transparent")
     meta.pack(side="left", fill="both", expand=True)
 
-    customtkinter.CTkLabel(
+    title_lbl = customtkinter.CTkLabel(
         meta, text=vn["title"],
         font=("Nunito", 17, "bold"), text_color=TEXT,
         anchor="w", wraplength=390, justify="left",
-    ).pack(fill="x")
+    )
+    title_lbl.pack(fill="x")
 
+    alt_lbl = None
     if vn.get("alttitle"):
-        customtkinter.CTkLabel(
+        alt_lbl = customtkinter.CTkLabel(
             meta, text=vn["alttitle"],
             font=("Quicksand", 12, "italic"), text_color=TEXT_MUTED,
             anchor="w", wraplength=390,
-        ).pack(fill="x", pady=(2, 8))
+        )
+        alt_lbl.pack(fill="x", pady=(2, 8))
     else:
         customtkinter.CTkFrame(meta, fg_color="transparent", height=8).pack()
+
+    value_labels = []
 
     def _meta_row(label: str, value: str) -> None:
         row = customtkinter.CTkFrame(meta, fg_color="transparent")
@@ -98,11 +103,13 @@ def open_vn_detail(parent, vn: dict) -> None:
             font=("Nunito", 11, "bold"), text_color=PINK_DARK,
             width=90, anchor="w",
         ).pack(side="left")
-        customtkinter.CTkLabel(
+        val_lbl = customtkinter.CTkLabel(
             row, text=value,
             font=FONT_SMALL, text_color=TEXT,
             anchor="w", wraplength=270, justify="left",
-        ).pack(side="left", fill="x", expand=True)
+        )
+        val_lbl.pack(side="left", fill="x", expand=True)
+        value_labels.append(val_lbl)
 
     _meta_row("Released", vn.get("released") or "Unknown")
 
@@ -131,9 +138,36 @@ def open_vn_detail(parent, vn: dict) -> None:
         font=("Nunito", 13, "bold"), text_color=PINK_DARK, anchor="w",
     ).pack(fill="x", pady=(0, 6))
 
-    customtkinter.CTkLabel(
+    desc_lbl = customtkinter.CTkLabel(
         body,
         text=clean_description(vn.get("description")),
         font=FONT_BODY, text_color=TEXT_MUTED,
         anchor="w", wraplength=560, justify="left",
-    ).pack(fill="x")
+    )
+    desc_lbl.pack(fill="x")
+
+    _resize_job = [None]
+
+    def _update_wraplengths():
+        w_meta = max(100, meta.winfo_width() - 8)
+        w_row  = max(80,  meta.winfo_width() - 98)
+        w_body = max(100, body.winfo_width() - 32)
+
+        if title_lbl.winfo_exists():
+            title_lbl.configure(wraplength=w_meta)
+        if alt_lbl and alt_lbl.winfo_exists():
+            alt_lbl.configure(wraplength=w_meta)
+        if desc_lbl.winfo_exists():
+            desc_lbl.configure(wraplength=w_body)
+        for lbl in meta_value_labels:
+            if lbl.winfo_exists():
+                lbl.configure(wraplength=w_row)
+
+    def _on_resize(event):
+        if event.widget != popup:
+            return
+        if _resize_job[0]:
+            popup.after_cancel(_resize_job[0])
+        _resize_job[0] = popup.after(50, _update_wraplengths)
+
+    popup.bind("<Configure>", _on_resize)
