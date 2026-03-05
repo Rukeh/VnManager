@@ -38,7 +38,7 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 
 ## 🌷 Requirements
 
-- Python 3.10 or newer
+- Only tested with Python 3.14.3 but should work with 3.10 or newer
 - On Linux: `tk` package (`sudo pacman -S tk` or `sudo apt install python3-tk`)
 
 ---
