@@ -215,7 +215,7 @@ def run() -> None:
     #maths
 
     def _card_wraplength() -> int:
-        return max(120, (right_panel.winfo_width() // 2) - 165)
+        return max(120, (right_panel.winfo_width() // 2) - 160)
     
     
     
@@ -250,8 +250,8 @@ def run() -> None:
             ).pack(pady=40)
             return
 
-        vns_scroll.columnconfigure(0, weight=1)
-        vns_scroll.columnconfigure(1, weight=1)  
+        vns_scroll.columnconfigure(0, weight=1, uniform="col")
+        vns_scroll.columnconfigure(1, weight=1, uniform="col")
 
         for idx, vn in enumerate(vns):
             row, col = divmod(idx, 2)
@@ -310,7 +310,7 @@ def run() -> None:
             ).pack()
 
             text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
-            text_frame.pack(side="left", fill="both", expand=True)
+            text_frame.pack(side="left", fill="y", expand=False)
 
             title_lbl = customtkinter.CTkLabel(
                 text_frame,
@@ -323,6 +323,15 @@ def run() -> None:
             )
             title_lbl.pack(fill="x")
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
+
+            def _update_wraplength(lbl=title_lbl):
+                w = text_frame.winfo_width()
+                if w > 10:
+                    lbl.configure(wraplength=w - 8)
+                else:
+                    lbl.configure(wraplength=_card_wraplength())
+
+            title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: _update_wraplength(lbl))
 
             customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
 
@@ -396,7 +405,7 @@ def run() -> None:
         """
         popup = customtkinter.CTkToplevel(app)
         popup.title("Note")
-        popup.geometry("360x200")
+        popup.geometry("1200x800")
         popup.configure(fg_color=BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
@@ -413,7 +422,7 @@ def run() -> None:
 
         text_box = customtkinter.CTkTextbox(
             popup,
-            height=80,
+            height=600,
             font=FONT_BODY,
             fg_color=PINK_SOFT,
             border_color=BORDER,
