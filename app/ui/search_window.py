@@ -399,7 +399,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         _last_size[:] = new_size
         if _resize_job:
             window.after_cancel(_resize_job)
-        _resize_job = window.after(150, lambda: render_results(last_results))
+        _resize_job = window.after(50, lambda: render_results(last_results))
 
     window.bind("<Configure>", _on_resize)
 

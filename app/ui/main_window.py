@@ -379,7 +379,7 @@ def run() -> None:
             return
         if _resize_job_main[0]:
             app.after_cancel(_resize_job_main[0])
-        _resize_job_main[0] = app.after(150, refresh_right_panel)
+        _resize_job_main[0] = app.after(10, refresh_right_panel)
 
     app.bind("<Configure>", _on_main_resize)
 
