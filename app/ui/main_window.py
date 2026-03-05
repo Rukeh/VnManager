@@ -81,6 +81,7 @@ def run() -> None:
     data = load_data()
     selected_category = [None]
     search_var = tkinter.StringVar()
+    sort_var = tkinter.StringVar(value="Date added")
 
     #topbar 
     topbar = customtkinter.CTkFrame(
@@ -207,7 +208,22 @@ def run() -> None:
         text_color=TEXT,
         anchor="w"
     )
-    right_title.pack(fill="x", padx=10, pady=(12, 6))
+    right_title.pack(side="left", padx=10, pady=(12, 6))
+
+    customtkinter.CTkOptionMenu(
+        panel_header,
+        values=["Date added", "Title (A-Z)", "Rating", "Release date", "Length"],
+        variable=sort_var,
+        fg_color=PINK_LIGHT,
+        button_color=PINK,
+        button_hover_color=PINK_DARK,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        dropdown_fg_color=CARD_BG,
+        corner_radius=10,
+        width=140,
+        command=lambda _: refresh_right_panel(),
+    ).pack(side="right", pady=(12, 6))
 
     vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent", scrollbar_button_color=PINK_MID)
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
@@ -217,8 +233,18 @@ def run() -> None:
     def _card_wraplength() -> int:
         return max(120, (right_panel.winfo_width() // 2) - 160)
     
-    
-    
+    def _sort_vns(vns: list) -> list:
+        sort = sort_var.get()
+        if sort == "Title (A-Z)":
+            return sorted(vns, key=lambda v: v["title"].lower())
+        elif sort == "Rating":
+            return sorted(vns, key=lambda v: v.get("rating") or 0, reverse=True)
+        elif sort == "Release date":
+            return sorted(vns, key=lambda v: v.get("released") or "", reverse=True)
+        elif sort == "Length":
+            return sorted(vns, key=lambda v: v.get("length") or 0, reverse=True)
+        return vns  # Date added — preserve list order
+
     # Renders for the vn panel
 
     def refresh_right_panel() -> None:
@@ -240,6 +266,7 @@ def run() -> None:
             v for v in data["vns"].get(cat, [])
             if query in v["title"].lower() or query in (v.get("alttitle") or "").lower()
         ]
+        vns = _sort_vns(vns)
 
         if not vns:
             customtkinter.CTkLabel(
