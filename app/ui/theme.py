@@ -1,3 +1,5 @@
+#Cute PINK Theme
+
 BG           = "#fff8f9"
 SIDEBAR_BG   = "#fff0f3"
 CARD_BG      = "#ffffff"
