@@ -1,22 +1,49 @@
-# VnManager
+# 🌸 VnManager
 
-A very very basic desktop app for tracking Visual Novels, powered by the [VNDB Kana API](https://api.vndb.org/kana).
+A cute little desktop app for tracking your visual novel backlog, built because spreadsheets are not kawaii enough ✨
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-green)
+Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, tags, descriptions, release info, all that in a pink fluffy UI you'll actually enjoy looking at (I hope).
 
-## Features
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![CustomTkinter](https://img.shields.io/badge/UI-CustomTkinter-green) ![License](https://img.shields.io/badge/license-MIT-pink)
 
-- Search the VNDB database by title
-- Add VNs to custom categories (Playing, Finished, Planned by default)
-- Remove VNs and manage categories
-- Data is saved locally in `data/save.json`
+---
 
-## Requirements
+## ✨ Screenshots
+
+**Library**
+![Library view](assets/screenshots/library.png)
+
+**Searching VnDB**
+![Search window](assets/screenshots/search.png)
+
+**VN details**
+![VN detail popup](assets/screenshots/detail.png)
+
+---
+
+## 🎀 Features
+
+- Search the VNDB database by title, browse up to 50 results
+- Add VNs to custom categories (defaults: Not finished, Finished, Planned)
+- Covers, ratings, tags, and descriptions displayed at glance
+- Click any cover or title to open a full detail popup
+- Leave personal notes on any VN in your library 📝
+- Move VNs between categories with easily 
+- Rename and delete categories whenever you feel like reorganising
+- Filter VNs within a category using the top search bar
+- Sort by date added, title, rating, release date, or length (may not be fully functionnal WIP)
+- Everything saves locally in `data/save.json` — no account, no cloud, just yours
+
+---
+
+## 🌷 Requirements
 
 - Python 3.10 or newer
-- On Linux: `tk` package (usually `sudo pacman -S tk` or `sudo apt install python3-tk`)
+- On Linux: `tk` package (`sudo pacman -S tk` or `sudo apt install python3-tk`)
 
-## Installation
+---
+
+## 💾 Installation
 
 ```bash
 git clone https://github.com/Rukeh/VnManager.git
@@ -25,8 +52,20 @@ pip install -r requirements.txt
 python main.py
 ```
 
+> **For information:** As the project is still in early build its not a recommended way to download it but its all there is for now; An executable file for windows will be available in version 0.2
+
 > **Linux/Wayland:** If the window doesn't open, try `GDK_BACKEND=x11 python main.py`
 
-## License
+---
+
+## 🗒️ Notes
+
+Personal project made out of frustration with having nowhere cute to track VNs. Not trying to replace your VNDB lists just a nice local companion for your backlog.
+
+If something breaks or you have an idea, feel free to open an issue ♡
+
+---
+
+## 📄 License
 
 MIT — see [LICENSE](LICENSE)
