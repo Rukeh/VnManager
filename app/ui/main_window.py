@@ -9,7 +9,7 @@ from PIL import Image, ImageEnhance
 
 from app.ui.search_window import open_search_window
 from app.ui.vn_detail import open_vn_detail
-from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
+from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
 from app.utils.text import clean_description
 from app.ui.theme import *
 from app.ui.components import render_tags, enable_touchpad_scroll
@@ -278,8 +278,6 @@ def run() -> None:
         vns_scroll.columnconfigure(0, weight=1, uniform="col")
         vns_scroll.columnconfigure(1, weight=1, uniform="col")
 
-        cover_size = cover_size_for_width(app.winfo_width(), "card")
-
         for idx, vn in enumerate(vns):
             row, col = divmod(idx, 2)
             year = (vn.get("released") or "?")[:4]
@@ -292,7 +290,7 @@ def run() -> None:
             top_row = customtkinter.CTkFrame(card, fg_color="transparent")
             top_row.pack(fill="x", padx=12, pady=(12, 0)) 
 
-            cover_frame = customtkinter.CTkFrame(top_row, width=cover_size[0], height=cover_size[1], fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+            cover_frame = customtkinter.CTkFrame(top_row, width=90, height=120, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
             cover_frame.pack(side="left", padx=(0, 10))
             cover_frame.pack_propagate(False)
 
@@ -302,7 +300,7 @@ def run() -> None:
             _images = {"normal": None, "dimmed": None}
 
             if img_url:
-                submit_image_task(async_load_with_hover, img_label, img_url, cover_size, _images)
+                submit_image_task(async_load_with_hover, img_label, img_url, (90, 120), _images)
 
             def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
                 cf.configure(fg_color="#c9a0b4")
@@ -400,15 +398,20 @@ def run() -> None:
     search_var.trace_add("write", lambda *_: refresh_right_panel())
 
     _resize_job_main = [None]
+    _last_window_size = [0, 0]
 
     enable_touchpad_scroll(app, categories_scroll, vns_scroll)
 
     def _on_main_resize(event):
         if event.widget != app:
             return
+        new_size = [event.width, event.height]
+        if new_size == _last_window_size:
+            return
+        _last_window_size[:] = new_size
         if _resize_job_main[0]:
             app.after_cancel(_resize_job_main[0])
-        _resize_job_main[0] = app.after(10, refresh_right_panel)
+        _resize_job_main[0] = app.after(200, refresh_right_panel)
 
     app.bind("<Configure>", _on_main_resize)
 
