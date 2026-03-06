@@ -93,27 +93,6 @@ def run() -> None:
         font=FONT_LOGO, text_color=PINK_DARK,
     ).pack(side="left", padx=(16, 0)) 
 
-    search_bar_frame = customtkinter.CTkFrame(
-        topbar, height=34, fg_color=PINK_SOFT,
-        border_width=1, border_color=BORDER, corner_radius=20,
-    )
-    search_bar_frame.pack(side="left", fill="x", expand=True, padx=20, pady=10)
-    search_bar_frame.pack_propagate(False)
-
-    customtkinter.CTkLabel(search_bar_frame, text="🔍", font=("Quicksand", 13), text_color=PINK,).pack(side="left", padx=(12, 4))
-
-    search_entry = customtkinter.CTkEntry(
-        search_bar_frame,
-        placeholder_text="Filter VNs in current category...",
-        textvariable=search_var,
-        border_width=0,
-        fg_color="transparent",
-        font=FONT_BODY,
-        text_color=TEXT,
-        placeholder_text_color=TEXT_MUTED,
-    )
-    search_entry.pack(fill="x", expand=True, padx=(0, 12), pady=4)
-    
     customtkinter.CTkButton(
         topbar,
         text="✦  Search VN",
@@ -222,6 +201,27 @@ def run() -> None:
         width=140,
         command=lambda _: refresh_right_panel(),
     ).pack(side="right", pady=(12, 6))
+
+    search_bar_frame = customtkinter.CTkFrame(
+        right_panel, height=34, fg_color=PINK_SOFT,
+        border_width=1, border_color=BORDER, corner_radius=20,
+    )
+    search_bar_frame.pack(fill="x", padx=20, pady=(6, 4))
+    search_bar_frame.pack_propagate(False)
+
+    customtkinter.CTkLabel(search_bar_frame, text="🔍", font=("Quicksand", 13), text_color=PINK).pack(side="left", padx=(12, 4))
+
+    search_entry = customtkinter.CTkEntry(
+        search_bar_frame,
+        placeholder_text="Filter VNs in current category...",
+        textvariable=search_var,
+        border_width=0,
+        fg_color="transparent",
+        font=FONT_BODY,
+        text_color=TEXT,
+        placeholder_text_color=TEXT_MUTED,
+    )
+    search_entry.pack(fill="x", expand=True, padx=(0, 12), pady=4)
 
     vns_scroll = customtkinter.CTkScrollableFrame(right_panel, fg_color="transparent", scrollbar_button_color=PINK_MID)
     vns_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
