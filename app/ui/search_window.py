@@ -152,25 +152,37 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         popup = customtkinter.CTkToplevel(window)
         popup.title("Add to category")
-        popup.geometry("350x170")
+        popup.geometry("350x210")
         popup.configure(fg_color=BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
 
+        def _fit_popup():
+            popup.update_idletasks()
+            popup.geometry(f"350x{popup.winfo_reqheight() + 20}")
+
+        popup.after(100, _fit_popup)
+
+        top_row = customtkinter.CTkFrame(popup, fg_color="transparent")
+        top_row.pack(fill="x", padx=12, pady=(12, 8))
+
+        customtkinter.CTkLabel(
+            top_row,
+            text=f'Add "{vn["title"]}" to :',
+            font=FONT_TITLE,
+            text_color=TEXT,
+            wraplength=220,
+            anchor="w",
+            justify="left",
+        ).pack(side="left", fill="x", expand=True)
+
         customtkinter.CTkButton(
-            popup, text="✕ Close", width=80, height=30,
+            top_row, text="Close ✕", width=28, height=28,
             fg_color=PINK_LIGHT, hover_color=PINK_MID,
             text_color=PINK_DARK, font=FONT_TITLE, corner_radius=20,
             command=popup.destroy,
-        ).place(x=260, y= 10)
-
-        customtkinter.CTkLabel(popup, 
-            text=f'Add "{vn["title"]}" to :', 
-            font= FONT_TITLE,
-            text_color=TEXT,
-            wraplength=260,
-        ).pack(pady=(35,8))
+        ).pack(side="right", anchor="n")
 
         var = tkinter.StringVar(value=categories[0])
         customtkinter.CTkOptionMenu(popup, 
@@ -489,13 +501,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             return
         if not last_results:
             return
-        new_size = [window.winfo_width(), window.winfo_height()]
+        new_size = [event.width, event.height]
         if new_size == _last_size:
             return
         _last_size[:] = new_size
         if _resize_job:
             window.after_cancel(_resize_job)
-        _resize_job = window.after(50, lambda: render_results(last_results))
+        _resize_job = window.after(200, lambda: render_results(last_results))
 
     window.bind("<Configure>", _on_resize)
 
