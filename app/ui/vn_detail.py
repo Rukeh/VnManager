@@ -159,7 +159,7 @@ def open_vn_detail(parent, vn: dict) -> None:
             alt_lbl.configure(wraplength=w_meta)
         if desc_lbl.winfo_exists():
             desc_lbl.configure(wraplength=w_body)
-        for lbl in meta_value_labels:
+        for lbl in value_labels:
             if lbl.winfo_exists():
                 lbl.configure(wraplength=w_row)
 
