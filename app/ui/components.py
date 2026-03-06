@@ -13,3 +13,28 @@ def render_tags(parent, vn: dict, max_tags: int = 6, include_spoilers: bool = Fa
         chip = customtkinter.CTkFrame(tag_frame, fg_color=PINK_SOFT, corner_radius=20, border_width=1, border_color=BORDER)
         chip.pack(side="left", padx=(0, 4), pady=2)
         customtkinter.CTkLabel(chip, text=name, font=("Quicksand", 10), text_color=TEXT_MUTED).pack(padx=8, pady=2)
+
+def enable_touchpad_scroll(root, *scrollable_frames: customtkinter.CTkScrollableFrame) -> None:
+    """
+    Enables Linux touchpad scrolling for one or more CTkScrollableFrames by
+    binding Button-4/5 events at the root window level and routing them to
+    whichever registered frame the cursor is currently over.
+    Args:
+        root:              The root CTk or CTkToplevel window to bind events on.
+        scrollable_frames: One or more CTkScrollableFrame instances to enable scrolling for.
+    """
+    canvases = {sf._parent_canvas: sf._parent_canvas for sf in scrollable_frames}
+
+    def _route(event, direction):
+        x, y = root.winfo_pointerx(), root.winfo_pointery()
+        for canvas in canvases:
+            cx = canvas.winfo_rootx()
+            cy = canvas.winfo_rooty()
+            cw = canvas.winfo_width()
+            ch = canvas.winfo_height()
+            if cx <= x <= cx + cw and cy <= y <= cy + ch:
+                canvas.yview_scroll(direction, "units")
+                return
+
+    root.bind("<Button-4>", lambda e: _route(e, -1), add="+")
+    root.bind("<Button-5>", lambda e: _route(e,  1), add="+")
