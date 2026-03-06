@@ -379,8 +379,9 @@ def run() -> None:
             ).pack(fill="x", padx=12, pady=(8, 4))
 
             # Notes section
-            notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8)
+            notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8, height=32)
             notes_bar.pack(fill="x", padx=12, pady=(0, 10))
+            notes_bar.pack_propagate(False)
 
             note_text = vn.get("notes", "").strip()
             note_preview = (note_text[:60] + "…") if len(note_text) > 60 else note_text
@@ -441,7 +442,6 @@ def run() -> None:
         popup.title("Note")
         popup.geometry("1200x800")
         popup.configure(fg_color=BG)
-        popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
         popup.after(50, lambda: popup.focus_force())
 
@@ -464,7 +464,7 @@ def run() -> None:
             text_color=TEXT,
             corner_radius=8,
         )
-        text_box.pack(fill="x", padx=16)
+        text_box.pack(fill="both", expand=True, padx=16)
         text_box.insert("0.0", vn.get("notes", ""))
         text_box.focus_set()
 
