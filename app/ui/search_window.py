@@ -30,7 +30,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
-    image_futures: list = []    
+    image_futures: list = []
+    _render_gen = [0] 
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -83,7 +84,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     btn_explicit = customtkinter.CTkButton(
         top_bar, text="🚫 Explicit", width=90,
         fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
-        hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID,
+        hover_color="#d90764" if settings["allow_explicit"] else PINK_MID,
         text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
         font=("Nunito", 12, "bold"), corner_radius=20,
         command=_toggle_explicit,
@@ -222,6 +223,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     #_____renders______
     def render_results(api_data: list) -> None:
+        _render_gen[0] += 1
         _last_rendered_size[:] = [window.winfo_width(), window.winfo_height()]
         for widget in results_frame.winfo_children():
             widget.destroy()
@@ -242,15 +244,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             return
 
         if view_mode.get() == "list":
-            _render_list(api_data)
+            _render_list(api_data, _render_gen[0])
         else:
-            _render_grid(api_data)
+            _render_grid(api_data, _render_gen[0])
 
-    def _render_list(api_data: list) -> None:
+    def _render_list(api_data: list, gen: int) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "list")
-        BATCH = 1
+        BATCH = 5
 
         def _render_batch(index: int) -> None:
+            if _render_gen[0] != gen:
+                return
             for vn in api_data[index : index + BATCH]:
                 year = (vn.get("released") or "?")[:4]
                 img_url = (vn["image"] or {}).get("url", "")
@@ -347,19 +351,21 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 ).pack(anchor='center', side='right', pady=(8, 0))
 
             if index + BATCH < len(api_data):
-                window.after(0, lambda: _render_batch(index + BATCH))
+                window.after(16, lambda: _render_batch(index + BATCH))
 
         _render_batch(0)
 
-    def _render_grid(api_data: list) -> None:
+    def _render_grid(api_data: list, gen: int) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "grid")
         card_width = cover_size[0] + 30
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
         results_frame.columnconfigure(list(range(columns)), weight=1)
-        BATCH = 1
+        BATCH = 5
 
         def _render_batch(index: int) -> None:
+            if _render_gen[0] != gen:
+                return
             for i, vn in enumerate(api_data[index : index + BATCH]):
                 idx = index + i
                 year = (vn.get("released") or "?")[:4]
@@ -434,7 +440,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 ).pack(pady=(0, 10))
 
             if index + BATCH < len(api_data):
-                window.after(0, lambda: _render_batch(index + BATCH))
+                window.after(16, lambda: _render_batch(index + BATCH))
 
         _render_batch(0)
 
