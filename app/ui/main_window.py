@@ -403,9 +403,6 @@ def run() -> None:
 
     enable_touchpad_scroll(app, categories_scroll, vns_scroll)
 
-    app.bind_all("<Button>", _debug)
-    app.bind_all("<MouseWheel>", _debug)
-
     def _on_main_resize(event):
         if event.widget != app:
             return
