@@ -5,9 +5,12 @@ from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 
 _session = requests.Session()
-_session.headers.update({"User-Agent": "VnManager/1.0"})
+_session.headers.update({
+    "User-Agent": "VnManager/1.0",
+    "Connection": "close",
+})
 
-_executor = ThreadPoolExecutor(max_workers=10)
+_executor = ThreadPoolExecutor(max_workers=4)
 
 def load_image_from_url(url, size = (150, 200), radius=10):
     """
