@@ -193,6 +193,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         button_color=PINK,
         button_hover_color=PINK_DARK,
         text_color=PINK_DARK,
+        dropdown_text_color=TEXT, 
         font=("Nunito", 12, "bold"),
         dropdown_fg_color=CARD_BG,
         corner_radius=10
