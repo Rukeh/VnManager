@@ -26,7 +26,7 @@ def open_vn_detail(parent, vn: dict) -> None:
 
     popup = customtkinter.CTkToplevel(parent)
     popup.title(vn["title"])
-    popup.geometry("620x540")
+    popup.geometry("1200x700")
     popup.configure(fg_color=BG)
     popup.resizable(True, True)
     popup.after(100, lambda: popup.lift())
@@ -62,7 +62,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     top = customtkinter.CTkFrame(body, fg_color="transparent")
     top.pack(fill="x", pady=(0, 12))
 
-    initial_size = cover_size_for_width(620, "detail")
+    initial_size = cover_size_for_width(1200, "detail")
 
     cover_frame = customtkinter.CTkFrame(
         top, width=initial_size[0], height=initial_size[1],
