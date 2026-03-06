@@ -402,8 +402,6 @@ def run() -> None:
     _resize_job_main = [None]
 
     enable_touchpad_scroll(app, categories_scroll, vns_scroll)
-    def _debug(e):
-        print(f"type={e.type} num={getattr(e,'num','-')} delta={getattr(e,'delta','-')} state={getattr(e,'state','-')}")
 
     app.bind_all("<Button>", _debug)
     app.bind_all("<MouseWheel>", _debug)
