@@ -235,181 +235,194 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             _render_grid(api_data)
 
     def _render_list(api_data: list) -> None:
-        for vn in api_data:
-            year = (vn.get("released") or "?")[:4]
-            img_url = (vn["image"] or {}).get("url", "")
-            rating  = vn.get("rating")
+        BATCH = 1
 
-            card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
-            card.pack(fill="x", pady=4, padx=4)
+        def _render_batch(index: int) -> None:
+            for vn in api_data[index : index + BATCH]:
+                year = (vn.get("released") or "?")[:4]
+                img_url = (vn["image"] or {}).get("url", "")
+                rating  = vn.get("rating")
 
-            inner = customtkinter.CTkFrame(card, fg_color="transparent")
-            inner.pack(fill="both", padx=12, pady=12)
+                card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+                card.pack(fill="x", pady=4, padx=4)
 
-            cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
-            cover_frame.pack(side="left", pady=(10, 6), padx=10)
-            cover_frame.pack_propagate(False)
+                inner = customtkinter.CTkFrame(card, fg_color="transparent")
+                inner.pack(fill="both", padx=12, pady=12)
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent", cursor="hand2", fg_color="transparent")
-            img_label.pack(fill="both", expand=True)
+                cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+                cover_frame.pack(side="left", pady=(10, 6), padx=10)
+                cover_frame.pack_propagate(False)
 
-            _images = {"normal": None, "dimmed": None}
-            if img_url:
-                _submit_image_hover(img_label, img_url, (165, 200), _images)
+                img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 18), bg_color="transparent", cursor="hand2", fg_color="transparent")
+                img_label.pack(fill="both", expand=True)
 
-            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color="#c9a0b4")
-                if imgs["dimmed"]:
-                    lbl.configure(image=imgs["dimmed"])
-            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color=PINK_LIGHT)
-                if imgs["normal"]:
-                    lbl.configure(image=imgs["normal"])
+                _images = {"normal": None, "dimmed": None}
+                if img_url:
+                    _submit_image_hover(img_label, img_url, (165, 200), _images)
 
-            for widget in (cover_frame, img_label):
-                widget.bind("<Enter>", on_enter)
-                widget.bind("<Leave>", on_leave)
-                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color="#c9a0b4")
+                    if imgs["dimmed"]:
+                        lbl.configure(image=imgs["dimmed"])
+                def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color=PINK_LIGHT)
+                    if imgs["normal"]:
+                        lbl.configure(image=imgs["normal"])
 
-            text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
-            text_frame.pack(side="left", fill="both", expand=True)
+                for widget in (cover_frame, img_label):
+                    widget.bind("<Enter>", on_enter)
+                    widget.bind("<Leave>", on_leave)
+                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
-            title_lbl = customtkinter.CTkLabel(
-                text_frame,
-                text=vn["title"],
-                font=FONT_H2,
-                text_color=TEXT,
-                anchor="w",
-                wraplength=380,
-                cursor="hand2",
-            )
-            title_lbl.pack(fill="x")
-            title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
+                text_frame.pack(side="left", fill="both", expand=True)
 
-            cats = _get_vn_categories(vn["id"])
-            if cats:
-                customtkinter.CTkLabel(
+                title_lbl = customtkinter.CTkLabel(
                     text_frame,
-                    text="✓  " + ", ".join(cats),
-                    font=("Nunito", 11, "bold"),
-                    text_color="#9b6dbd",
-                    fg_color="#e8d5f5",
-                    corner_radius=20,
+                    text=vn["title"],
+                    font=FONT_H2,
+                    text_color=TEXT,
                     anchor="w",
-                ).pack(anchor="w", pady=(2, 4))
+                    wraplength=380,
+                    cursor="hand2",
+                )
+                title_lbl.pack(fill="x")
+                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
-            year_rat = year
-            if rating:
-                year_rat += f"   ★ {rating / 10:.2f}"
-            customtkinter.CTkLabel(text_frame, text=year_rat,font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",).pack(fill="x", pady=(1, 4))     
+                cats = _get_vn_categories(vn["id"])
+                if cats:
+                    customtkinter.CTkLabel(
+                        text_frame,
+                        text="✓  " + ", ".join(cats),
+                        font=("Nunito", 11, "bold"),
+                        text_color="#9b6dbd",
+                        fg_color="#e8d5f5",
+                        corner_radius=20,
+                        anchor="w",
+                    ).pack(anchor="w", pady=(2, 4))
 
-            render_tags(text_frame, vn)       
+                year_rat = year
+                if rating:
+                    year_rat += f"   ★ {rating / 10:.2f}"
+                customtkinter.CTkLabel(text_frame, text=year_rat, font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w").pack(fill="x", pady=(1, 4))
 
-            desc_lbl = customtkinter.CTkLabel(
-                text_frame,
-                text=clean_description(vn.get("description")),
-                font=FONT_SMALL,
-                text_color=TEXT_MUTED,
-                anchor="w",
-                wraplength=300,
-                justify="left",
-            )
-            desc_lbl.pack(fill="x")
-            desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
+                render_tags(text_frame, vn)
 
-            customtkinter.CTkButton(
-                text_frame,
-                text='+ Add',
-                width = 72,
-                height=28,
-                fg_color=PINK_LIGHT,
-                hover_color=PINK,
-                text_color=PINK_DARK,
-                font=('Nunito', 12, "bold"),
-                corner_radius=20,
-                command = lambda v=vn: _add_to_category(v)
-            ).pack(anchor='center',side = 'right', pady=(8,0))
+                desc_lbl = customtkinter.CTkLabel(
+                    text_frame,
+                    text=clean_description(vn.get("description")),
+                    font=FONT_SMALL,
+                    text_color=TEXT_MUTED,
+                    anchor="w",
+                    wraplength=300,
+                    justify="left",
+                )
+                desc_lbl.pack(fill="x")
+                desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
+
+                customtkinter.CTkButton(
+                    text_frame,
+                    text='+ Add',
+                    width=72,
+                    height=28,
+                    fg_color=PINK_LIGHT,
+                    hover_color=PINK,
+                    text_color=PINK_DARK,
+                    font=('Nunito', 12, "bold"),
+                    corner_radius=20,
+                    command=lambda v=vn: _add_to_category(v),
+                ).pack(anchor='center', side='right', pady=(8, 0))
+
+            if index + BATCH < len(api_data):
+                window.after(0, lambda: _render_batch(index + BATCH))
+
+        _render_batch(0)
 
     def _render_grid(api_data: list) -> None:
-        
         card_width = 195
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
-
         results_frame.columnconfigure(list(range(columns)), weight=1)
-        
-        for index, vn in enumerate(api_data):
-            year = (vn.get("released") or "?")[:4]
-            img_url = (vn["image"] or {}).get("url", "")
-            row, col = divmod(index, columns)
+        BATCH = 1
 
-            card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
-            card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
+        def _render_batch(index: int) -> None:
+            for i, vn in enumerate(api_data[index : index + BATCH]):
+                idx = index + i
+                year = (vn.get("released") or "?")[:4]
+                img_url = (vn["image"] or {}).get("url", "")
+                row, col = divmod(idx, columns)
 
-            cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
-            cover_frame.pack(pady=(10, 6), padx=10)
-            cover_frame.pack_propagate(False)
+                card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+                card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent", cursor="hand2", fg_color="transparent")
-            img_label.pack(fill="both", expand=True)
+                cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+                cover_frame.pack(pady=(10, 6), padx=10)
+                cover_frame.pack_propagate(False)
 
-            _images = {"normal": None, "dimmed": None}
-            if img_url:
-                _submit_image_hover(img_label, img_url, (165, 200), _images)
+                img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 28), bg_color="transparent", cursor="hand2", fg_color="transparent")
+                img_label.pack(fill="both", expand=True)
 
-            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color="#c9a0b4")
-                if imgs["dimmed"]:
-                    lbl.configure(image=imgs["dimmed"])
-            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color=PINK_LIGHT)
-                if imgs["normal"]:
-                    lbl.configure(image=imgs["normal"])
+                _images = {"normal": None, "dimmed": None}
+                if img_url:
+                    _submit_image_hover(img_label, img_url, (165, 200), _images)
 
-            for widget in (cover_frame, img_label):
-                widget.bind("<Enter>", on_enter)
-                widget.bind("<Leave>", on_leave)
-                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color="#c9a0b4")
+                    if imgs["dimmed"]:
+                        lbl.configure(image=imgs["dimmed"])
+                def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color=PINK_LIGHT)
+                    if imgs["normal"]:
+                        lbl.configure(image=imgs["normal"])
 
-            title_lbl = customtkinter.CTkLabel(card,
-                text=vn["title"],
-                font=("Nunito", 12, "bold"), 
-                text_color=TEXT,
-                wraplength=130,
-                justify="center",
-                cursor="hand2",
-            )
-            title_lbl.pack(padx=6)
-            title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
-            title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
+                for widget in (cover_frame, img_label):
+                    widget.bind("<Enter>", on_enter)
+                    widget.bind("<Leave>", on_leave)
+                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
 
-            cats = _get_vn_categories(vn["id"])
-            if cats:
-                customtkinter.CTkLabel(
+                title_lbl = customtkinter.CTkLabel(
                     card,
-                    text="✓  " + ", ".join(cats),
-                    font=("Nunito", 10, "bold"),
-                    text_color="#9b6dbd",
-                    fg_color="#e8d5f5",
+                    text=vn["title"],
+                    font=("Nunito", 12, "bold"),
+                    text_color=TEXT,
+                    wraplength=130,
+                    justify="center",
+                    cursor="hand2",
+                )
+                title_lbl.pack(padx=6)
+                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: lbl.configure(wraplength=max(100, card.winfo_width() - 8)))
+
+                cats = _get_vn_categories(vn["id"])
+                if cats:
+                    customtkinter.CTkLabel(
+                        card,
+                        text="✓  " + ", ".join(cats),
+                        font=("Nunito", 10, "bold"),
+                        text_color="#9b6dbd",
+                        fg_color="#e8d5f5",
+                        corner_radius=20,
+                    ).pack(pady=(2, 4), padx=6)
+
+                customtkinter.CTkLabel(
+                    card, text=year,
+                    font=FONT_SMALL,
+                    text_color=TEXT_MUTED,
+                ).pack(pady=(0, 8))
+
+                customtkinter.CTkButton(
+                    card, text="＋ Add",
+                    width=100, height=28,
+                    fg_color=PINK_LIGHT, hover_color=PINK,
+                    text_color=PINK_DARK, font=("Nunito", 12, "bold"),
                     corner_radius=20,
-                ).pack(pady=(2, 4), padx=6)
+                    command=lambda v=vn: _add_to_category(v),
+                ).pack(pady=(0, 10))
 
-            customtkinter.CTkLabel(
-                card, text=year,
-                font=FONT_SMALL, 
-                text_color=TEXT_MUTED,
-            ).pack(pady=(0, 8))
+            if index + BATCH < len(api_data):
+                window.after(0, lambda: _render_batch(index + BATCH))
 
-            customtkinter.CTkButton(
-                card, text="＋ Add", 
-                width=100, height=28,
-                fg_color=PINK_LIGHT, 
-                hover_color=PINK,
-                text_color=PINK_DARK, 
-                font=("Nunito", 12, "bold"),
-                corner_radius=20,
-                command=lambda v=vn: _add_to_category(v),
-            ).pack(pady=(0, 10))         
+        _render_batch(0)
 
     def do_search() -> None:
         query = entry.get().strip()
