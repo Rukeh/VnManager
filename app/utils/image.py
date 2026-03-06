@@ -83,3 +83,40 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict) -> None:
             label.image = images["normal"]
 
     label.after(0, _apply)
+
+def cover_size_for_width(window_width: int, context: str = "card") -> tuple[int, int]:
+    """
+    Returns a (width, height) cover size scaled to the given window width and render context.
+    Args:
+        window_width: The current width of the window in pixels.
+        context:      One of "card", "list", "grid", or "detail".
+    Returns:
+        A (width, height) tuple for use when fetching or resizing a cover image.
+    """
+    if context == "card":
+        if window_width < 900:
+            return (72, 96)
+        elif window_width < 1400:
+            return (90, 120)
+        else:
+            return (112, 150)
+    elif context == "list":
+        if window_width < 800:
+            return (120, 145)
+        elif window_width < 1200:
+            return (165, 200)
+        else:
+            return (195, 236)
+    elif context == "grid":
+        if window_width < 700:
+            return (130, 158)
+        else:
+            return (165, 200)
+    elif context == "detail":
+        if window_width < 500:
+            return (120, 165)
+        elif window_width < 750:
+            return (160, 220)
+        else:
+            return (200, 275)
+    return (90, 120)

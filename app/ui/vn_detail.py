@@ -1,5 +1,5 @@
 import customtkinter
-from app.utils.image import load_image_from_url, submit_image_task
+from app.utils.image import load_image_from_url, submit_image_task, cover_size_for_width
 from app.utils.text import clean_description
 from app.ui.theme import *
 from app.ui.components import render_tags
@@ -12,9 +12,12 @@ def open_vn_detail(parent, vn: dict) -> None:
         parent: The parent window (CTk or CTkToplevel).
         vn:     The VN dict.
     """
+    _cover_ctk_img = [None]
+
     def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size)
         if img:
+            _cover_ctk_img[0] = img
             def _apply():
                 if label.winfo_exists():
                     label.configure(image=img)
@@ -59,8 +62,11 @@ def open_vn_detail(parent, vn: dict) -> None:
     top = customtkinter.CTkFrame(body, fg_color="transparent")
     top.pack(fill="x", pady=(0, 12))
 
+    initial_size = cover_size_for_width(620, "detail")
+
     cover_frame = customtkinter.CTkFrame(
-        top, width=160, height=220, fg_color=PINK_LIGHT, corner_radius=12,
+        top, width=initial_size[0], height=initial_size[1],
+        fg_color=PINK_LIGHT, corner_radius=12,
     )
     cover_frame.pack(side="left", padx=(0, 16))
     cover_frame.pack_propagate(False)
@@ -70,7 +76,7 @@ def open_vn_detail(parent, vn: dict) -> None:
 
     img_url = (vn.get("image") or {}).get("url", "")
     if img_url:
-        submit_image_task(_async_load_image, img_label, img_url, (160, 220))
+        submit_image_task(_async_load_image, img_label, img_url, initial_size)
 
     meta = customtkinter.CTkFrame(top, fg_color="transparent")
     meta.pack(side="left", fill="both", expand=True)
@@ -148,6 +154,14 @@ def open_vn_detail(parent, vn: dict) -> None:
 
     _resize_job = [None]
 
+    def _do_resize():
+        _update_wraplengths()
+        new_size = cover_size_for_width(popup.winfo_width(), "detail")
+        if cover_frame.winfo_exists():
+            cover_frame.configure(width=new_size[0], height=new_size[1])
+        if _cover_ctk_img[0] is not None:
+            _cover_ctk_img[0].configure(size=new_size)
+
     def _update_wraplengths():
         w_meta = max(100, meta.winfo_width() - 8)
         w_row  = max(80,  meta.winfo_width() - 98)
@@ -168,6 +182,6 @@ def open_vn_detail(parent, vn: dict) -> None:
             return
         if _resize_job[0]:
             popup.after_cancel(_resize_job[0])
-        _resize_job[0] = popup.after(50, _update_wraplengths)
+        _resize_job[0] = popup.after(50, _do_resize)
 
     popup.bind("<Configure>", _on_resize)

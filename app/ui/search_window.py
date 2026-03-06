@@ -5,7 +5,7 @@ import traceback
 
 from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
-from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
+from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
 from app.ui.components import render_tags, enable_touchpad_scroll
 
@@ -233,6 +233,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             _render_grid(api_data)
 
     def _render_list(api_data: list) -> None:
+        cover_size = cover_size_for_width(window.winfo_width(), "list")
         BATCH = 1
 
         def _render_batch(index: int) -> None:
@@ -247,7 +248,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 inner = customtkinter.CTkFrame(card, fg_color="transparent")
                 inner.pack(fill="both", padx=12, pady=12)
 
-                cover_frame = customtkinter.CTkFrame(inner, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+                cover_frame = customtkinter.CTkFrame(inner, width=cover_size[0], height=cover_size[1], fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
                 cover_frame.pack(side="left", pady=(10, 6), padx=10)
                 cover_frame.pack_propagate(False)
 
@@ -256,7 +257,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
                 _images = {"normal": None, "dimmed": None}
                 if img_url:
-                    _submit_image_hover(img_label, img_url, (165, 200), _images)
+                    _submit_image_hover(img_label, img_url, cover_size, _images)
 
                 def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
                     cf.configure(fg_color="#c9a0b4")
@@ -337,7 +338,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         _render_batch(0)
 
     def _render_grid(api_data: list) -> None:
-        card_width = 195
+        cover_size = cover_size_for_width(window.winfo_width(), "grid")
+        card_width = cover_size[0] + 30
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
         results_frame.columnconfigure(list(range(columns)), weight=1)
@@ -353,7 +355,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
                 card.grid(row=row, column=col, padx=6, pady=6, sticky="n")
 
-                cover_frame = customtkinter.CTkFrame(card, width=165, height=200, fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+                cover_frame = customtkinter.CTkFrame(card, width=cover_size[0], height=cover_size[1], fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
                 cover_frame.pack(pady=(10, 6), padx=10)
                 cover_frame.pack_propagate(False)
 
@@ -362,7 +364,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
                 _images = {"normal": None, "dimmed": None}
                 if img_url:
-                    _submit_image_hover(img_label, img_url, (165, 200), _images)
+                    _submit_image_hover(img_label, img_url, cover_size, _images)
 
                 def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
                     cf.configure(fg_color="#c9a0b4")
@@ -485,7 +487,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         nonlocal _resize_job
         if event.widget != window:
             return
-        if view_mode.get() != "grid" or not last_results:
+        if not last_results:
             return
         new_size = [window.winfo_width(), window.winfo_height()]
         if new_size == _last_size:
