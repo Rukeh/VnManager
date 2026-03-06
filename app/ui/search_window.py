@@ -1,6 +1,7 @@
 import tkinter
 import customtkinter
 from concurrent.futures import ThreadPoolExecutor
+import traceback
 
 from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
@@ -12,8 +13,6 @@ from app.ui.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
 
-####BIG PROBLEM RIGHT NOW WHEN A SEARCH RETURN AN ERROR (EXEMPLE OF NO RESULTS FOUND) THE SUBSEQUENT SEARCHES RETURN ERRORS AS WELL 
-
 #this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
 _image_cache = {}
 
@@ -24,7 +23,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     """
     window = customtkinter.CTkToplevel(parent)
     window.title("Search a Visual Novel from VnDB database...")
-    window.geometry("600x450")
+    window.geometry("1000x750")
     window.after(100, lambda: window.lift())
     window.after(100, lambda: window.focus_force())
     window.configure(fg_color=BG)
@@ -434,17 +433,18 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         def _search():
             try:
                 api_data = search_vns(query)
-            except Exception:
-                window.after(0, lambda: _show_error())
+            except Exception as e:
+                traceback.print_exc()
+                window.after(0, lambda e=e: _show_error(e))
                 return
             window.after(0, lambda: _show_results(api_data))
 
-        def _show_error():
+        def _show_error(error):
             for widget in results_frame.winfo_children():
                 widget.destroy()
             customtkinter.CTkLabel(
                 results_frame,
-                text="Search failed. Please check your internet connection and try again.",
+                text=f'Search failed. Please check your internet connection and try again. Error: {error}',
                 font=FONT_BODY,
                 text_color="#f87171", 
                 wraplength=400
