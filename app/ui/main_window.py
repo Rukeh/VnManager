@@ -16,13 +16,11 @@ from app.ui.components import render_tags
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
-##########Need to code something to make the title label and description label of the vns change their wraplength based on window width (not forgetting to refresh on every width change) 
-
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
 _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 
-_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}}
+_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}, "settings": {"allow_suggestive": False, "allow_explicit": False}}
 
 
 def load_data() -> dict:
