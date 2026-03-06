@@ -200,13 +200,14 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         def confirm():
             cat = var.get()
             vns_in_cat = data["vns"].setdefault(cat, [])
-            if not any(v["id"] == vn["id"] for v in vns_in_cat):
+            added = not any(v["id"] == vn["id"] for v in vns_in_cat)
+            if added:
                 vns_in_cat.append(vn)
                 from app.ui.main_window import save_data
                 save_data(data)
-                if on_vn_added:
-                    on_vn_added()
             popup.destroy()
+            if added and on_vn_added:
+                window.after(300, on_vn_added)
 
         customtkinter.CTkButton(popup, 
         text="+ Add", 
@@ -221,6 +222,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     #_____renders______
     def render_results(api_data: list) -> None:
+        _last_rendered_size[:] = [window.winfo_width(), window.winfo_height()]
         for widget in results_frame.winfo_children():
             widget.destroy()
         max_nsfw_filter = 0
@@ -494,6 +496,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     _resize_job = None
     _last_size = [0, 0]
+    _last_rendered_size = [0, 0]
 
     def _on_resize(event):
         nonlocal _resize_job
@@ -507,7 +510,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         _last_size[:] = new_size
         if _resize_job:
             window.after_cancel(_resize_job)
-        _resize_job = window.after(200, lambda: render_results(last_results))
+        def _maybe_render():
+            actual = [window.winfo_width(), window.winfo_height()]
+            if actual == _last_rendered_size:
+                return
+            _last_rendered_size[:] = actual
+            render_results(last_results)
+        _resize_job = window.after(200, _maybe_render)
 
     window.bind("<Configure>", _on_resize)
 
