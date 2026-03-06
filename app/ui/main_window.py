@@ -12,7 +12,7 @@ from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
 from app.utils.text import clean_description
 from app.ui.theme import *
-from app.ui.components import render_tags
+from app.ui.components import render_tags, enable_touchpad_scroll
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
@@ -398,6 +398,13 @@ def run() -> None:
     search_var.trace_add("write", lambda *_: refresh_right_panel())
 
     _resize_job_main = [None]
+
+    enable_touchpad_scroll(app, categories_scroll, vns_scroll)
+    def _debug(e):
+        print(f"type={e.type} num={getattr(e,'num','-')} delta={getattr(e,'delta','-')} state={getattr(e,'state','-')}")
+
+    app.bind_all("<Button>", _debug)
+    app.bind_all("<MouseWheel>", _debug)
 
     def _on_main_resize(event):
         if event.widget != app:

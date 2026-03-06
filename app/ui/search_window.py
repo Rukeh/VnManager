@@ -7,7 +7,7 @@ from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover
 from app.utils.text import clean_description
-from app.ui.components import render_tags
+from app.ui.components import render_tags, enable_touchpad_scroll
 
 from app.ui.theme import *
 
@@ -487,3 +487,4 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     window.bind("<Configure>", _on_resize)
 
     entry.bind("<Return>", lambda _e: do_search())
+    enable_touchpad_scroll(window, results_frame)
