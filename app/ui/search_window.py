@@ -12,6 +12,8 @@ from app.ui.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
 
+####BIG PROBLEM RIGHT NOW WHEN A SEARCH RETURN AN ERROR (EXEMPLE OF NO RESULTS FOUND) THE SUBSEQUENT SEARCHES RETURN ERRORS AS WELL 
+
 #this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
 _image_cache = {}
 
@@ -42,6 +44,52 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     toggle_btn = customtkinter.CTkButton(top_bar, text="⊞ Grid", width=76,fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK,font=("Nunito", 12, "bold"),corner_radius=20, command=lambda :toggle_view())
     toggle_btn.pack(side="right", padx=(0, 12))
+
+    settings = data.setdefault("settings", {"allow_suggestive": False, "allow_explicit": False})
+
+    def _toggle_suggestive():
+        settings["allow_suggestive"] = not settings["allow_suggestive"]
+        btn_suggestive.configure(
+            fg_color=PINK if settings["allow_suggestive"] else PINK_LIGHT,
+            text_color="#fff" if settings["allow_suggestive"] else PINK_DARK,
+            hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID
+            ),
+        from app.ui.main_window import save_data
+        save_data(data)
+        if last_results:
+            render_results(last_results)
+
+    def _toggle_explicit():
+        settings["allow_explicit"] = not settings["allow_explicit"]
+        btn_explicit.configure(
+            fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
+            text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
+            hover_color="#d90764" if settings["allow_explicit"] else PINK_MID
+            )
+        from app.ui.main_window import save_data
+        save_data(data)
+        if last_results:
+            render_results(last_results)
+
+    btn_suggestive = customtkinter.CTkButton(
+        top_bar, text="🌸 Suggestive", width=100,
+        fg_color=PINK if settings["allow_suggestive"] else PINK_LIGHT,
+        hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID, 
+        text_color="#fff" if settings["allow_suggestive"] else PINK_DARK,
+        font=("Nunito", 12, "bold"), corner_radius=20,
+        command=_toggle_suggestive,
+    )
+    btn_suggestive.pack(side="right", padx=(0, 6))
+
+    btn_explicit = customtkinter.CTkButton(
+        top_bar, text="🚫 Explicit", width=90,
+        fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
+        hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID,
+        text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
+        font=("Nunito", 12, "bold"), corner_radius=20,
+        command=_toggle_explicit,
+    )
+    btn_explicit.pack(side="right", padx=(0, 4))
 
     search_btn = customtkinter.CTkButton(top_bar, text="Search", width=80,fg_color=PINK, hover_color=PINK_DARK,text_color="#fff", font = ("Nunito", 13, "bold"), corner_radius=20, command=lambda :do_search())
     search_btn.pack(side="right", padx=(0,6))    
@@ -166,6 +214,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     def render_results(api_data: list) -> None:
         for widget in results_frame.winfo_children():
             widget.destroy()
+        max_nsfw_filter = 0
+        if settings["allow_suggestive"]:
+            max_nsfw_filter = 1
+        if settings["allow_explicit"]:
+            max_nsfw_filter = 2
+        
+        api_data = [v for v in api_data if (v.get("image") or {}).get('sexual', 0) <= max_nsfw_filter]
 
         if not api_data:
             customtkinter.CTkLabel(

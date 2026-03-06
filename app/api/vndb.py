@@ -14,4 +14,5 @@ def search_vns(title):
     }
     response = requests.post(url=url, json=payload)
     response.raise_for_status()
+    print(response.json())
     return response.json()["results"]
