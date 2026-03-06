@@ -195,8 +195,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 if on_vn_added:
                     on_vn_added()
             popup.destroy()
-            if last_results:
-                render_results(last_results)
 
         customtkinter.CTkButton(popup, 
         text="+ Add", 
