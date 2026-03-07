@@ -31,8 +31,6 @@ def open_vn_detail(parent, vn: dict) -> None:
     popup.resizable(True, True)
     popup.after(100, lambda: popup.lift())
     popup.after(100, lambda: popup.focus_force())
-    popup.attributes("-topmost", True)
-    popup.after(200, lambda: popup.attributes("-topmost", False))
 
     header = customtkinter.CTkFrame(
         popup, fg_color=CARD_BG,

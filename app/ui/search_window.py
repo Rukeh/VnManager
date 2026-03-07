@@ -358,6 +358,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         card_width = cover_size[0] + 30
         window_width = window.winfo_width()
         columns = max(1, window_width // card_width)
+        for i in range(20):
+            results_frame.columnconfigure(i, weight=0)
         results_frame.columnconfigure(list(range(columns)), weight=1)
         BATCH = 5
 
