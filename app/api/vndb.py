@@ -9,7 +9,7 @@ def search_vns(title):
     url = "https://api.vndb.org/kana/vn"
     payload = {
         "filters": ["search", "=", title],
-        "fields": "id, title, alttitle, released, languages, platforms, image.url, length, description, rating, tags.name, tags.rating, tags.spoiler, tags.lie, image.sexual",
+        "fields": "id, title, alttitle, released, languages, platforms, image.url, length, length_minutes, description, rating, tags.name, tags.rating, tags.spoiler, tags.lie, image.sexual",
         "results": 25,
     }
     response = requests.post(url=url, json=payload)
