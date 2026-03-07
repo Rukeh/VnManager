@@ -10,7 +10,7 @@ def search_vns(title):
     payload = {
         "filters": ["search", "=", title],
         "fields": "id, title, alttitle, released, languages, platforms, image.url, length, description, rating, tags.name, tags.rating, tags.spoiler, tags.lie, image.sexual",
-        "results": 50,
+        "results": 25,
     }
     response = requests.post(url=url, json=payload)
     response.raise_for_status()
