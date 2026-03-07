@@ -123,7 +123,16 @@ def open_vn_detail(parent, vn: dict) -> None:
     _meta_row("Rating", f"★ {rating / 10:.2f} / 10" if rating else "N/A")
 
     length_map = {1: "Very short (<2h)", 2: "Short (2-10h)", 3: "Medium (10-30h)", 4: "Long (30-50h)", 5: "Very long (>50h)"}
-    _meta_row("Length", length_map.get(vn.get("length"), "Unknown"))
+    length_minutes = vn.get("length_minutes")
+    if length_minutes:
+        h, m = divmod(length_minutes, 60)
+        length_str = f"{h}h {m:02d}m" if h else f"{m}m"
+        category = length_map.get(vn.get("length"))
+        if category:
+            length_str += f"  ({category})"
+    else:
+        length_str = length_map.get(vn.get("length"), "Unknown")
+    _meta_row("Length", length_str)
 
     langs = vn.get("languages") or []
     _meta_row("Languages", ", ".join(langs) if langs else "Unknown")
