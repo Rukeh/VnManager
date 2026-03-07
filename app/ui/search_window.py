@@ -7,7 +7,7 @@ from app.api.vndb import search_vns
 from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
-from app.ui.components import render_tags, enable_touchpad_scroll
+from app.ui.components import render_tags, enable_touchpad_scroll, logical_width
 
 from app.ui.theme import *
 
@@ -303,6 +303,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 )
                 title_lbl.pack(fill="x")
                 title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, tf=text_frame: lbl.configure(wraplength=max(100, logical_width(tf) - 8)))
 
                 cats = _get_vn_categories(vn["id"])
                 if cats:
@@ -333,7 +334,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     justify="left",
                 )
                 desc_lbl.pack(fill="x")
-                desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl: lbl.configure(wraplength=max(100, text_frame.winfo_width() - 8)))
+                desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl, tf=text_frame: lbl.configure(wraplength=max(100, logical_width(tf) - 8)))
 
                 customtkinter.CTkButton(
                     text_frame,
@@ -356,8 +357,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     def _render_grid(api_data: list, gen: int) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "grid")
         card_width = cover_size[0] + 30
-        window_width = window.winfo_width()
-        columns = max(1, window_width // card_width)
+        columns = max(1, logical_width(window) // card_width)
         for i in range(20):
             results_frame.columnconfigure(i, weight=0)
         results_frame.columnconfigure(list(range(columns)), weight=1)
@@ -411,7 +411,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 )
                 title_lbl.pack(padx=6)
                 title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
-                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: lbl.configure(wraplength=max(100, card.winfo_width() - 8)))
+                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 8)))
 
                 cats = _get_vn_categories(vn["id"])
                 if cats:

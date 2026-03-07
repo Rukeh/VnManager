@@ -11,7 +11,7 @@ from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
 from app.ui.theme import *
-from app.ui.components import render_tags, enable_touchpad_scroll
+from app.ui.components import render_tags, enable_touchpad_scroll, logical_width
 
 def _get_base_dir() -> str:
     if getattr(sys, "frozen", False):
@@ -240,7 +240,7 @@ def run() -> None:
     #maths
 
     def _card_wraplength() -> int:
-        return max(120, (right_panel.winfo_width() // 2) - 160)
+        return max(120, (logical_width(right_panel) // 2) - 160)
     
     def _sort_vns(vns: list) -> list:
         sort = sort_var.get()
@@ -363,7 +363,7 @@ def run() -> None:
             title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
             def _update_wraplength(lbl=title_lbl):
-                w = text_frame.winfo_width()
+                w = logical_width(text_frame)
                 if w > 10:
                     lbl.configure(wraplength=w - 8)
                 else:
@@ -379,7 +379,7 @@ def run() -> None:
                 customtkinter.CTkLabel(rating_frame, text=f"★ {rating/10:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)    
             render_tags(text_frame, vn, max_tags=5)     
 
-            customtkinter.CTkLabel(
+            desc_lbl = customtkinter.CTkLabel(
                 card,
                 text=clean_description(vn.get("description"), 500),
                 font=FONT_SMALL,
@@ -387,7 +387,9 @@ def run() -> None:
                 anchor="w",
                 wraplength=_card_wraplength(),
                 justify="left"
-            ).pack(fill="x", padx=12, pady=(8, 4))
+            )
+            desc_lbl.pack(fill="x", padx=12, pady=(8, 4))
+            desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 32)))
 
             # Notes section
             notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8, height=32)

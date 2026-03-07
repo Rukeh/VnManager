@@ -2,7 +2,7 @@ import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task, cover_size_for_width
 from app.utils.text import clean_description
 from app.ui.theme import *
-from app.ui.components import render_tags, enable_touchpad_scroll
+from app.ui.components import render_tags, enable_touchpad_scroll, logical_width
 
 def open_vn_detail(parent, vn: dict) -> None:
     """
@@ -31,6 +31,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     popup.resizable(True, True)
     popup.after(100, lambda: popup.lift())
     popup.after(100, lambda: popup.focus_force())
+    popup.transient(parent)
 
     header = customtkinter.CTkFrame(
         popup, fg_color=CARD_BG,
@@ -170,9 +171,9 @@ def open_vn_detail(parent, vn: dict) -> None:
             _cover_ctk_img[0].configure(size=new_size)
 
     def _update_wraplengths():
-        w_meta = max(100, meta.winfo_width() - 8)
-        w_row  = max(80,  meta.winfo_width() - 98)
-        w_body = max(100, body.winfo_width() - 32)
+        w_meta = max(100, logical_width(meta) - 8)
+        w_row  = max(80,  logical_width(meta) - 98)
+        w_body = max(100, logical_width(body) - 32)
 
         if title_lbl.winfo_exists():
             title_lbl.configure(wraplength=w_meta)
@@ -192,4 +193,5 @@ def open_vn_detail(parent, vn: dict) -> None:
         _resize_job[0] = popup.after(50, _do_resize)
 
     popup.bind("<Configure>", _on_resize)
+    popup.after(150, _update_wraplengths)
     enable_touchpad_scroll(popup, body)

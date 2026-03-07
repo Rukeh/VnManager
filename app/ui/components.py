@@ -2,6 +2,18 @@ import customtkinter
 from app.utils.text import get_clean_tags
 from app.ui.theme import *
 
+def logical_width(widget) -> int:
+    """
+    Returns the widget's width in logical pixels, correcting for Windows DPI scaling.
+    winfo_width() returns physical pixels at high DPI, but CTkLabel wraplength
+    expects logical pixels matching CTk's internal layout scale.
+    """
+    try:
+        scale = customtkinter.ScalingTracker.get_widget_scaling(widget)
+    except Exception:
+        scale = 1.0
+    return int(widget.winfo_width() / scale)
+
 def render_tags(parent, vn: dict, max_tags: int = 6, include_spoilers: bool = False) -> None:
     """Renders tag chips into the given parent frame."""
     tags = get_clean_tags(vn, max_tags=max_tags, include_spoilers=include_spoilers)
