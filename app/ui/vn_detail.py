@@ -147,7 +147,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     desc_lbl = customtkinter.CTkLabel(
         body,
         text=clean_description(vn.get("description")),
-        font=FONT_BODY, text_color=TEXT_MUTED,
+        font=("Quicksand", 15), text_color=TEXT_MUTED,
         anchor="w", wraplength=560, justify="left",
     )
     desc_lbl.pack(fill="x")
