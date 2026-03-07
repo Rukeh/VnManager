@@ -2,11 +2,9 @@ import json
 import os
 import tkinter
 import copy
-import re
 import sys
 
 import customtkinter
-from PIL import Image, ImageEnhance
 
 from app.ui.search_window import open_search_window
 from app.ui.vn_detail import open_vn_detail
@@ -15,9 +13,6 @@ from app.utils.text import clean_description
 from app.ui.theme import *
 from app.ui.components import render_tags, enable_touchpad_scroll
 
-########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
-
-# AFTER
 def _get_base_dir() -> str:
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
