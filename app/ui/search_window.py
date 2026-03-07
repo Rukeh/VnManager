@@ -13,9 +13,6 @@ from app.ui.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
 
-#this cache grows unbounded during a session should consider adding a cache cap or a way to clear it if it becomes a issue on memory
-_image_cache = {}
-
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
     Opens a Toplevel window that lets the user search VnDB and browse results
