@@ -2,7 +2,7 @@ import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task, cover_size_for_width
 from app.utils.text import clean_description
 from app.ui.theme import *
-from app.ui.components import render_tags
+from app.ui.components import render_tags, enable_touchpad_scroll
 
 def open_vn_detail(parent, vn: dict) -> None:
     """
@@ -194,3 +194,4 @@ def open_vn_detail(parent, vn: dict) -> None:
         _resize_job[0] = popup.after(50, _do_resize)
 
     popup.bind("<Configure>", _on_resize)
+    enable_touchpad_scroll(popup, body)
