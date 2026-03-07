@@ -17,13 +17,22 @@ from app.ui.components import render_tags, enable_touchpad_scroll
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
+# AFTER
 def _get_base_dir() -> str:
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+def _get_save_dir() -> str:
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA", os.path.expanduser("~"))
+        return os.path.join(base, "VnManager")
+    else:
+        base = os.environ.get("XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local", "share"))
+        return os.path.join(base, "vnmanager")
+
 _BASE_DIR = _get_base_dir()
-_SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
+_SAVE_FILE = os.path.join(_get_save_dir(), "save.json")
 _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 
 _DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}, "settings": {"allow_suggestive": False, "allow_explicit": False}}
@@ -109,7 +118,7 @@ def run() -> None:
         corner_radius=20,
         height=34,
         width=130,
-        command=lambda: open_search_window(app, data, on_vn_added=refresh_right_panel),
+        command=lambda: open_search_window(app, data, on_vn_added=lambda: (refresh_right_panel(), refresh_categories())),
     ).pack(side="right", padx=(0, 16), pady=10)
 
     #layout of the app
