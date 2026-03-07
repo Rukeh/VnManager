@@ -14,10 +14,11 @@ _executor = ThreadPoolExecutor(max_workers=4)
 
 def load_image_from_url(url, size = (150, 200), radius=10):
     """
-    Fetches an image from a URL and returns it as a CTkImage
+    Fetches an image from a URL and returns it as a CTkImage.
+    Fetches at 2x the display size so images stay sharp on HiDPI/4K screens.
     Args:
         url(str):  Direct URL to the image
-        size(tuple): (width, height) tuple for the returned image. Defaults to (150, 200)
+        size(tuple): (width, height) logical display size. Defaults to (150, 200)
 
     Returns:
         A CTkImage on success, or None if the request fails
@@ -25,9 +26,10 @@ def load_image_from_url(url, size = (150, 200), radius=10):
     try:
         response = _session.get(url, timeout=5)
         response.raise_for_status()
+        fetch_size = (size[0] * 2, size[1] * 2)
         img = Image.open(BytesIO(response.content)).convert("RGBA")
-        img = img.resize(size, Image.LANCZOS)
-        img = round_image(img, radius)
+        img = img.resize(fetch_size, Image.LANCZOS)
+        img = round_image(img, radius * 2)
         img.load()
         return customtkinter.CTkImage(img, size=size)
     except Exception:
@@ -49,9 +51,10 @@ def round_image(img: Image.Image, radius: int) -> Image.Image:
 
 def async_load_with_hover(label, url: str, size: tuple, images: dict) -> None:
     """
-    Fetches an image, generates a dimmed version for hover, and applies
-    the normal version to the label. Intended to be run in a thread via
-    submit_image_task.
+    Fetches an image at 2x resolution, generates a dimmed version for hover,
+    and applies the normal version to the label. Intended to be run in a thread
+    via submit_image_task. Images are fetched at 2x size for HiDPI sharpness,
+    but CTkImage is told to display at the original logical size.
 
     Populates images["normal"] and images["dimmed"] with CTkImage instances,
     then schedules a UI update on the main thread via label.after().
@@ -59,14 +62,15 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict) -> None:
     Args:
         label:  The CTkLabel to update once the image is loaded.
         url:    Direct URL to the image.
-        size:   (width, height) tuple for the image.
+        size:   (width, height) logical display size.
         images: Dict with "normal" and "dimmed" keys to populate.
     """
     try:
         response = _session.get(url, timeout=5)
+        fetch_size = (size[0] * 2, size[1] * 2)
         img_pil = Image.open(BytesIO(response.content)).convert("RGBA")
-        img_pil = img_pil.resize(size, Image.LANCZOS)
-        img_pil = round_image(img_pil, 10)
+        img_pil = img_pil.resize(fetch_size, Image.LANCZOS)
+        img_pil = round_image(img_pil, 20)
     except Exception:
         return
 
@@ -95,11 +99,11 @@ def cover_size_for_width(window_width: int, context: str = "card") -> tuple[int,
     """
     if context == "card":
         if window_width < 900:
-            return (72, 96)
+            return (110, 147)
         elif window_width < 1400:
-            return (90, 120)
+            return (135, 180)
         else:
-            return (112, 150)
+            return (165, 220)
     elif context == "list":
         if window_width < 800:
             return (120, 145)
