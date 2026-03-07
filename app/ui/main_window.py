@@ -3,6 +3,7 @@ import os
 import tkinter
 import copy
 import re
+import sys
 
 import customtkinter
 from PIL import Image, ImageEnhance
@@ -16,7 +17,12 @@ from app.ui.components import render_tags, enable_touchpad_scroll
 
 ########## SHOULD CONSIDER REORGANISING THE ENTIRE FILE STRUCTURE BECAUSE ITS BECOMING HARD TO FIND WHAT YOU WANT IN THIS FILE !!!!!! :((((((((
 
-_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+def _get_base_dir() -> str:
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+_BASE_DIR = _get_base_dir()
 _SAVE_FILE = os.path.join(_BASE_DIR, "data", "save.json")
 _LOGO_PATH = os.path.join(_BASE_DIR, "assets", "logo.png")
 
