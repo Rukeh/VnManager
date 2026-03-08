@@ -8,7 +8,7 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 
 ---
 
-## ✨ Screenshots
+## Screenshots
 
 **Library**
 ![Library view](assets/screenshots/library.png)
@@ -21,30 +21,40 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 
 ---
 
-## 🎀 Features
+## Features
 
 - Search the VNDB database by title, browse up to 50 results
 - Add VNs to custom categories (defaults: Not finished, Finished, Planned)
-- Covers, ratings, tags, and descriptions displayed at glance
+- Covers, ratings, tags, and descriptions displayed at a glance
 - Click any cover or title to open a full detail popup
 - Leave personal notes on any VN in your library
-- Move VNs between categories with easily 
+- Move VNs between categories easily
 - Rename and delete categories whenever you feel like reorganising
 - Filter VNs within a category using the top search bar
-- Sort by date added, title, rating, release date, or length (may not be fully functionnal WIP)
-- Everything saves locally in `data/save.json` no account, no cloud, just yours
+- Sort by date added, title, rating, release date, or length
+- NSFW content toggle in search (suggestive and explicit separately)
+- Touchpad scroll support on Linux
+- Everything saves locally: no account, no cloud
 
 ---
 
-## 🌷 Requirements
+## Requirements
 
 - Python : Only tested with Python 3.14.3 but should work with 3.10 or newer
 - On Linux: `tk` package (`sudo pacman -S tk` or `sudo apt install python3-tk`)
 
 ---
+## How to install
 
-## 💾 Installation
+### Windows
+Download the latest `VnManager.exe` from the [releases page](https://github.com/Rukeh/VnManager/releases).
 
+### Arch Linux (AUR)
+```bash
+yay -S vnmanager
+```
+
+### From source
 ```bash
 git clone https://github.com/Rukeh/VnManager.git
 cd VnManager
@@ -52,7 +62,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-> **For information:** As the project is still in early build, its not a recommended way to download it, but its all there is for now; An executable file for windows will be available in version 0.2
+> **For information: For source** As the project is still in early build, its not a recommended way to download it, but its all there is for now for other distros.
 
 > **Linux/Wayland:** If the window doesn't open, try `GDK_BACKEND=x11 python main.py`
 
