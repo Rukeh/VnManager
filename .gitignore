@@ -6,3 +6,4 @@ OldFileStructureBackup
 **/save.json
 dist/
 build/
+VnManager.spec
