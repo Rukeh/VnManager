@@ -61,6 +61,7 @@ cd VnManager
 pip install -r requirements.txt
 python main.py
 ```
+> **You will probably need to create a virtual environment.**
 
 > **For information: For source** As the project is still in early build, its not a recommended way to download it, but its all there is for now for other distros.
 
