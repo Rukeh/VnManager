@@ -26,7 +26,7 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 
 ## Features
 
-- Search the VNDB database by title, browse up to 50 results
+- Search the VNDB database by title (expanding the search function is in plan)
 - Add VNs to custom categories (defaults: Not finished, Finished, Planned)
 - Covers, ratings, tags, and descriptions displayed at a glance
 - Click any cover or title to open a full detail popup
