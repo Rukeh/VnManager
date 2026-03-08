@@ -13,8 +13,11 @@ Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, t
 **Library**
 ![Library view](assets/screenshots/library.png)
 
-**Searching VnDB**
-![Search window](assets/screenshots/search.png)
+**Searching VnDB (list)**
+![Search window](assets/screenshots/search_list.png)
+
+**Searching VnDB (grid)**
+![Search window](assets/screenshots/search_grid.png)
 
 **VN details**
 ![VN detail popup](assets/screenshots/detail.png)
