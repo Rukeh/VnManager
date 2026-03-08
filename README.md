@@ -54,6 +54,13 @@ Download the latest `VnManager.exe` from the [releases page](https://github.com/
 yay -S vnmanager
 ```
 
+### Linux (other distros)
+Download the latest `VnManager-x86_64.AppImage` from the [releases page](https://github.com/Rukeh/VnManager/releases).
+```bash
+chmod +x VnManager-x86_64.AppImage
+./VnManager-x86_64.AppImage
+```
+
 ### From source
 ```bash
 git clone https://github.com/Rukeh/VnManager.git
@@ -62,8 +69,6 @@ pip install -r requirements.txt
 python main.py
 ```
 > **You will probably need to create a virtual environment.**
-
-> **For information: For source** As the project is still in early build, its not a recommended way to download it, but its all there is for now for other distros.
 
 > **Linux/Wayland:** If the window doesn't open, try `GDK_BACKEND=x11 python main.py`
 
