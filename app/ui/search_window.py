@@ -3,7 +3,7 @@ import customtkinter
 from concurrent.futures import ThreadPoolExecutor
 import traceback
 
-from app.api.vndb import search_vns
+from app.api.vndb import search_vns, search_tags
 from app.ui.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
@@ -28,7 +28,20 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     last_results: list = []
     view_mode = tkinter.StringVar(value="list")
     image_futures: list = []
-    _render_gen = [0] 
+    _render_gen = [0]
+    _tag_panel_open = [False]
+
+    # Tag groups : list of lists of {"id": "gXX", "name": "..."}
+    #Each list inside is = one OR group, groups are AND together
+    tag_groups: list[list[dict]] = [[]]
+    _group_entries: list = []
+    _tag_suggest_job = [None]
+    _tag_dropdown_win = [None]
+    _tag_listbox = [None]
+    _active_group_idx = [0]
+    _active_entry = [None]
+    _suggest_results = [None]
+    _dropdown_mouse_inside = [False]
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -89,7 +102,15 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     btn_explicit.pack(side="right", padx=(0, 4))
 
     search_btn = customtkinter.CTkButton(top_bar, text="Search", width=80,fg_color=PINK, hover_color=PINK_DARK,text_color="#fff", font = ("Nunito", 13, "bold"), corner_radius=20, command=lambda :do_search())
-    search_btn.pack(side="right", padx=(0,6))    
+    search_btn.pack(side="right", padx=(0,6))
+
+    tag_toggle_btn = customtkinter.CTkButton(
+        top_bar, text="Tags", width=72, height=30,
+        fg_color=PINK_LIGHT, hover_color=PINK_MID,
+        text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+        corner_radius=20, command=lambda: _toggle_tag_panel(),
+    )
+    tag_toggle_btn.pack(side="right", padx=(0, 4))
     
     customtkinter.CTkLabel(
         top_bar, text="🔎  Search VnDB",
@@ -109,6 +130,290 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...  (Press Enter)", border_width=0, fg_color='transparent', font = FONT_BODY, text_color=TEXT, placeholder_text_color=TEXT_MUTED)
     entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=6)
 
+    #Tag panel
+
+    tag_section = customtkinter.CTkFrame(window, fg_color=PINK_SOFT, border_width=1, border_color=BORDER, corner_radius=0)
+    #this is shown when toggled
+
+    tag_header = customtkinter.CTkFrame(tag_section, fg_color="transparent")
+    tag_header.pack(fill="x", padx=10, pady=(6, 2))
+
+    customtkinter.CTkLabel(
+        tag_header, text="HELP : Tags within a group are OR'd  WHILE  groups are AND'd",
+        font=("Nunito", 14), text_color=TEXT_MUTED,
+    ).pack(side="left")
+
+    customtkinter.CTkButton(
+        tag_header, text="＋ AND group", width=90, height=22,
+        fg_color=PINK_LIGHT, hover_color=PINK_MID,
+        text_color=PINK_DARK, font=("Nunito", 10, "bold"),
+        corner_radius=20, command=lambda: _add_group(),
+    ).pack(side="right")
+
+    tag_groups_frame = customtkinter.CTkFrame(tag_section, fg_color="transparent")
+    tag_groups_frame.pack(fill="x", padx=10, pady=(0, 6))
+
+    def _active_tag_count() -> int:
+        return sum(len(g) for g in tag_groups)
+
+    def _update_tag_btn_label() -> None:
+        count = _active_tag_count()
+        if count:
+            tag_toggle_btn.configure(
+                text=f"🏷️ Tags ({count})",
+                fg_color=PINK, text_color="#fff", hover_color=PINK_DARK,
+            )
+        else:
+            tag_toggle_btn.configure(
+                text="🏷️ Tags",
+                fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID,
+            )
+
+    def _toggle_tag_panel() -> None:
+        if _tag_panel_open[0]:
+            tag_section.pack_forget()
+            _tag_panel_open[0] = False
+            _close_dropdown()
+        else:
+            tag_section.pack(fill="x", after=top_bar)
+            _tag_panel_open[0] = True
+            _render_tag_section()
+
+    #Autocomplete for tags
+
+    def _close_dropdown() -> None:
+        _dropdown_mouse_inside[0] = False
+        if _tag_dropdown_win[0]:
+            try:
+                _tag_dropdown_win[0].destroy()
+            except Exception:
+                pass
+        _tag_dropdown_win[0] = None
+        _tag_listbox[0] = None
+        _suggest_results[0] = None
+
+    def _show_dropdown(results: list, anchor_entry) -> None:
+        _close_dropdown()
+        if not results or not anchor_entry.winfo_exists():
+            return
+
+        _suggest_results[0] = results
+        x = anchor_entry.winfo_rootx()
+        y = anchor_entry.winfo_rooty() + anchor_entry.winfo_height() + 2
+        row_h = 26
+        h = min(len(results), 8) * row_h + 4
+
+        win = tkinter.Toplevel(window)
+        win.overrideredirect(True)
+        win.geometry(f"240x{h}+{x}+{y}")
+        win.configure(bg=CARD_BG)
+        win.lift()
+        _tag_dropdown_win[0] = win
+
+        lb = tkinter.Listbox(
+            win,
+            font=("Quicksand", 11),
+            bg=CARD_BG, fg=TEXT,
+            selectbackground=PINK_LIGHT, selectforeground=PINK_DARK,
+            borderwidth=0, highlightthickness=1,
+            highlightbackground=BORDER,
+            relief="flat", activestyle="dotbox",
+            height=len(results),
+        )
+        lb.pack(fill="both", expand=True)
+        _tag_listbox[0] = lb
+
+        for r in results:
+            lb.insert("end", f"  {r['name']}")
+
+        def _pick(e=None):
+            sel = lb.curselection()
+            if not sel:
+                return
+            _add_tag_to_group(_suggest_results[0][sel[0]], _active_group_idx[0])
+            _close_dropdown()
+            if _active_entry[0] and _active_entry[0].winfo_exists():
+                _active_entry[0].delete(0, "end")
+                _active_entry[0].focus_set()
+
+        def _on_lb_key(e):
+            if e.keysym == "Return":
+                _pick()
+            elif e.keysym == "Escape":
+                _close_dropdown()
+                if _active_entry[0] and _active_entry[0].winfo_exists():
+                    _active_entry[0].focus_set()
+
+        lb.bind("<ButtonRelease-1>", _pick)
+        lb.bind("<KeyPress>", _on_lb_key)
+        lb.bind("<Enter>", lambda e: _set_dropdown_mouse(True))
+        lb.bind("<Leave>", lambda e: _set_dropdown_mouse(False))
+        win.bind("<Enter>", lambda e: _set_dropdown_mouse(True))
+        win.bind("<Leave>", lambda e: _set_dropdown_mouse(False))
+
+    def _set_dropdown_mouse(inside: bool) -> None:
+        _dropdown_mouse_inside[0] = inside
+
+    def _maybe_close_dropdown() -> None:
+        if _dropdown_mouse_inside[0]:
+            return
+        focused = window.focus_get()
+        if _active_entry[0]:
+            try:
+                if focused == _active_entry[0]:
+                    return
+            except Exception:
+                pass
+        if _tag_listbox[0]:
+            try:
+                if focused == _tag_listbox[0]:
+                    return
+            except Exception:
+                pass
+        _close_dropdown()
+
+    def _fetch_tag_suggestions(query: str, anchor_entry, g_idx: int) -> None:
+        def _fetch():
+            try:
+                results = search_tags(query)
+            except Exception:
+                return
+            if _active_group_idx[0] == g_idx:
+                window.after(0, lambda: _show_dropdown(results, anchor_entry))
+        _search_executor.submit(_fetch)
+
+    def _on_tag_key(event, g_idx: int, raw_entry) -> None:
+        if event.keysym in ("Return", "Escape", "Down", "Up", "Tab"):
+            return
+        _active_group_idx[0] = g_idx
+        _active_entry[0] = raw_entry
+        if _tag_suggest_job[0]:
+            window.after_cancel(_tag_suggest_job[0])
+        text = raw_entry.get().strip()
+        if len(text) < 2:
+            _close_dropdown()
+            return
+        _tag_suggest_job[0] = window.after(300, lambda: _fetch_tag_suggestions(text, raw_entry, g_idx))
+
+    def _on_entry_down(raw_entry) -> None:
+        if _tag_listbox[0]:
+            _tag_listbox[0].focus_set()
+            if _tag_listbox[0].size() > 0:
+                _tag_listbox[0].selection_set(0)
+                _tag_listbox[0].activate(0)
+
+    def _on_entry_return(raw_entry) -> None:
+        if _tag_listbox[0] and _tag_listbox[0].size() > 0:
+            _tag_listbox[0].selection_set(0)
+            _tag_listbox[0].event_generate("<ButtonRelease-1>")
+        else:
+            _close_dropdown()
+
+    #groups manipulation
+
+    def _add_group() -> None:
+        tag_groups.append([])
+        _render_tag_section()
+
+    def _remove_group(g_idx: int) -> None:
+        if len(tag_groups) > 1:
+            tag_groups.pop(g_idx)
+        else:
+            tag_groups[0] = []
+        _close_dropdown()
+        _render_tag_section()
+        _update_tag_btn_label()
+
+    def _add_tag_to_group(tag: dict, g_idx: int) -> None:
+        if g_idx < len(tag_groups):
+            if not any(t["id"] == tag["id"] for t in tag_groups[g_idx]):
+                tag_groups[g_idx].append(tag)
+        _render_tag_section(refocus=g_idx)
+        _update_tag_btn_label()
+
+    def _remove_tag_from_group(g_idx: int, tag_id: str) -> None:
+        if g_idx < len(tag_groups):
+            tag_groups[g_idx] = [t for t in tag_groups[g_idx] if t["id"] != tag_id]
+        _render_tag_section(refocus=g_idx)
+        _update_tag_btn_label()
+
+    #Tag renders
+
+    def _render_tag_section(refocus: int = None) -> None:
+        _group_entries.clear()
+        _close_dropdown()
+        for w in tag_groups_frame.winfo_children():
+            w.destroy()
+
+        for g_idx, group in enumerate(tag_groups):
+            if g_idx > 0:
+                sep_row = customtkinter.CTkFrame(tag_groups_frame, fg_color="transparent")
+                sep_row.pack(fill="x", pady=(1, 0))
+                customtkinter.CTkLabel(
+                    sep_row, text="AND",
+                    font=("Nunito", 9, "bold"), text_color="#ffffff",
+                    fg_color=PINK_DARK, corner_radius=6,
+                ).pack(side="left", padx=4, ipadx=5, ipady=1)
+
+            group_row = customtkinter.CTkFrame(tag_groups_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=8)
+            group_row.pack(fill="x", pady=(1, 0))
+
+            chips_area = customtkinter.CTkFrame(group_row, fg_color="transparent")
+            chips_area.pack(side="left", fill="y", padx=(4, 0), pady=3)
+
+            for c_idx, tag in enumerate(group):
+                if c_idx > 0:
+                    customtkinter.CTkLabel(
+                        chips_area, text="OR",
+                        font=("Nunito", 9, "bold"), text_color=PINK_DARK,
+                        fg_color=PINK_MID, corner_radius=5,
+                    ).pack(side="left", padx=2, ipadx=4, ipady=1)
+
+                chip = customtkinter.CTkFrame(chips_area, fg_color=PINK_LIGHT, corner_radius=20)
+                chip.pack(side="left", padx=(0, 2), pady=2)
+                customtkinter.CTkLabel(
+                    chip, text=tag["name"],
+                    font=("Quicksand", 10), text_color=PINK_DARK,
+                ).pack(side="left", padx=(6, 1), pady=1)
+                customtkinter.CTkButton(
+                    chip, text="✕", width=16, height=16,
+                    fg_color="transparent", hover_color=PINK_MID,
+                    text_color=PINK_DARK, font=("Nunito", 9, "bold"),
+                    corner_radius=8,
+                    command=lambda gi=g_idx, tid=tag["id"]: _remove_tag_from_group(gi, tid),
+                ).pack(side="left", padx=(0, 3), pady=1)
+
+            entry_g = customtkinter.CTkEntry(
+                group_row,
+                placeholder_text="+ OR tag...",
+                border_width=1, border_color=BORDER,
+                fg_color=PINK_SOFT, text_color=TEXT,
+                placeholder_text_color=TEXT_MUTED,
+                font=("Quicksand", 10), width=140, height=24,
+                corner_radius=20,
+            )
+            entry_g.pack(side="left", padx=4, pady=3)
+
+            # Bind to the inner tkinter Entry so KeyRelease fires reliably
+            raw = entry_g._entry
+            raw.bind("<KeyRelease>", lambda e, gi=g_idx, re=raw: _on_tag_key(e, gi, re))
+            raw.bind("<Down>", lambda e, re=raw: _on_entry_down(re))
+            raw.bind("<Return>", lambda e, re=raw: _on_entry_return(re))
+            raw.bind("<Escape>", lambda e: _close_dropdown())
+            raw.bind("<FocusOut>", lambda e: window.after(200, _maybe_close_dropdown))
+            _group_entries.append(entry_g)
+
+            customtkinter.CTkButton(
+                group_row, text="✕", width=20, height=20,
+                fg_color="transparent", hover_color=PINK_MID,
+                text_color="#cc4444", font=("Nunito", 10, "bold"),
+                corner_radius=10,
+                command=lambda gi=g_idx: _remove_group(gi),
+            ).pack(side="right", padx=(0, 4), pady=3)
+
+        if refocus is not None and refocus < len(_group_entries):
+            window.after(10, lambda: _group_entries[refocus].focus_set())
+
     #______Results_______
 
     results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
@@ -119,9 +424,10 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         image_futures.append(future)
 
     def _cancel_image_tasks():
-        for f in image_futures:
-            f.cancel()
+        futures = list(image_futures)
         image_futures.clear()
+        for f in futures:
+            f.cancel()
 
     #_________________________
     def _add_to_category(vn: dict) -> None:
@@ -255,7 +561,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 return
             for vn in api_data[index : index + BATCH]:
                 year = (vn.get("released") or "?")[:4]
-                img_url = (vn["image"] or {}).get("url", "")
+                img_url = (vn.get("image") or {}).get("url", "")
                 rating  = vn.get("rating")
 
                 card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
@@ -369,7 +675,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             for i, vn in enumerate(api_data[index : index + BATCH]):
                 idx = index + i
                 year = (vn.get("released") or "?")[:4]
-                img_url = (vn["image"] or {}).get("url", "")
+                img_url = (vn.get("image") or {}).get("url", "")
                 row, col = divmod(idx, columns)
 
                 card = customtkinter.CTkFrame(results_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
@@ -446,10 +752,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     def do_search() -> None:
         query = entry.get().strip()
-        if not query:
+        tg = [[t["id"] for t in group] for group in tag_groups if group]
+
+        if not query and not tg:
             return
 
         _cancel_image_tasks()
+        _close_dropdown()
 
         for widget in results_frame.winfo_children():
             widget.destroy()
@@ -463,9 +772,12 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             font=("Nunito", 14, "bold"), text_color=TEXT_MUTED,
         ).pack(pady=(6, 0))
 
+        tg_snapshot = [list(g) for g in tg]
+        query_snapshot = query
+
         def _search():
             try:
-                api_data = search_vns(query)
+                api_data = search_vns(title=query_snapshot, tag_groups=tg_snapshot)
             except Exception as e:
                 traceback.print_exc()
                 window.after(0, lambda e=e: _show_error(e))
