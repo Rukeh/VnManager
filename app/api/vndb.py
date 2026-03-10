@@ -1,4 +1,27 @@
+import time
 import requests
+from requests.exceptions import ConnectionError, Timeout
+
+_RETRY_ATTEMPTS = 3
+_RETRY_DELAY = 1.5
+
+
+def _post_with_retry(url: str, payload: dict) -> dict:
+    """
+    Wraps requests.post with retry logic for connection errors.
+    Retries up to _RETRY_ATTEMPTS times with a short delay between each.
+    """
+    last_exc = None
+    for attempt in range(_RETRY_ATTEMPTS):
+        try:
+            response = requests.post(url=url, json=payload, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except (ConnectionError, Timeout) as e:
+            last_exc = e
+            if attempt < _RETRY_ATTEMPTS - 1:
+                time.sleep(_RETRY_DELAY)
+    raise last_exc
 
 
 def search_vns(title: str = "", tag_groups: list = None) -> list:
@@ -46,9 +69,7 @@ def search_vns(title: str = "", tag_groups: list = None) -> list:
     if has_tags:
         payload["reverse"] = True
 
-    response = requests.post(url=url, json=payload)
-    response.raise_for_status()
-    return response.json()["results"]
+    return _post_with_retry(url, payload)["results"]
 
 
 def search_tags(query: str) -> list:
@@ -63,6 +84,4 @@ def search_tags(query: str) -> list:
         "results": 12,
         "sort": "searchrank",
     }
-    response = requests.post(url=url, json=payload)
-    response.raise_for_status()
-    return response.json()["results"]
+    return _post_with_retry(url, payload)["results"]
