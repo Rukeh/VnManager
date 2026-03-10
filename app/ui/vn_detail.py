@@ -1,3 +1,4 @@
+import webbrowser
 import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task, cover_size_for_width
 from app.utils.text import clean_description
@@ -143,6 +144,19 @@ def open_vn_detail(parent, vn: dict) -> None:
         _meta_row("VNDB ID", vn["id"])
 
     render_tags(meta, vn, max_tags=8)
+
+    if vn.get("id"):
+        customtkinter.CTkButton(
+            meta,
+            text="🔗  Open on VNDB",
+            width=160, height=30,
+            fg_color=PINK_LIGHT,
+            hover_color=PINK_MID,
+            text_color=PINK_DARK,
+            font=("Nunito", 12, "bold"),
+            corner_radius=20,
+            command=lambda: webbrowser.open(f"https://vndb.org/{vn['id']}"),
+        ).pack(anchor="w", pady=(8, 0))
 
     #divider frame
     customtkinter.CTkFrame(body, fg_color=BORDER, height=1, corner_radius=0).pack(fill="x", pady=(4, 12))
