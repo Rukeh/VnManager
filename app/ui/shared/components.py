@@ -1,6 +1,6 @@
 import customtkinter
 from app.utils.text import get_clean_tags
-from app.ui.theme import *
+from app.ui.shared.theme import *
 
 def logical_width(widget) -> int:
     """
