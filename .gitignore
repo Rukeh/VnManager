@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 *.pyo
 OldFileStructureBackup
-**/save.json
 dist/
 build/
 VnManager.spec
