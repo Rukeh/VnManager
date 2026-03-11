@@ -63,7 +63,7 @@ Download the latest `VnManager-x86_64.AppImage` from the [releases page](https:/
 chmod +x VnManager-x86_64.AppImage
 ./VnManager-x86_64.AppImage
 ```
-
+> **Seems to break on debian right now (only archlinux was tested)**
 ### From source
 ```bash
 git clone https://github.com/Rukeh/VnManager.git
