@@ -5,7 +5,7 @@ import copy
 
 import customtkinter
 
-_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}, "settings": {"allow_suggestive": False, "allow_explicit": False}}
+_DEFAULT_DATA = {"categories": ["Not finished", "Finished", "Planned"], "vns": {}, "settings": {"allow_suggestive": False, "allow_explicit": False, "low_perf_mode": False}}
 
 
 def _get_save_dir() -> str:

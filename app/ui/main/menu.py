@@ -2,13 +2,14 @@ import customtkinter
 from app.ui.shared.theme import *
 
 
-def build_menu(parent, on_library, on_stats) -> None:
+def build_menu(parent, on_library, on_stats, on_settings) -> None:
     """
     Renders the welcome menu screen into parent.
     Args:
-        parent:     The CTkFrame to render into (menu_frame from main_window).
-        on_library: Callback to navigate to the library view.
-        on_stats:   Callback to navigate to the stats view.
+        parent:      The CTkFrame to render into (menu_frame from main_window).
+        on_library:  Callback to navigate to the library view.
+        on_stats:    Callback to navigate to the stats view.
+        on_settings: Callback to navigate to the settings view.
     """
     center = customtkinter.CTkFrame(parent, fg_color="transparent")
     center.place(relx=0.5, rely=0.5, anchor="center")
@@ -52,3 +53,4 @@ def build_menu(parent, on_library, on_stats) -> None:
 
     _make_card(cards_row, "📚", "My Library", "Browse & manage your VNs", on_library)
     _make_card(cards_row, "📊", "Statistics", "Charts & reading insights", on_stats)
+    _make_card(cards_row, "⚙️", "Settings", "Performance & preferences", on_settings)

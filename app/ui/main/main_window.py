@@ -3,11 +3,12 @@ import customtkinter
 
 from app.utils.save import load_data
 from app.ui.shared.theme import *
-from app.ui.shared.components import enable_touchpad_scroll
+from app.ui.shared.components import enable_touchpad_scroll, set_low_perf_mode
 from app.ui.main.menu import build_menu
 from app.ui.main.categories import build_categories
 from app.ui.main.library import build_library
 from app.ui.main.stats_dashboard import build_stats_dashboard
+from app.ui.main.settings_panel import build_settings
 from app.ui.search.search_window import open_search_window
 
 
@@ -37,6 +38,8 @@ def run() -> None:
     search_var = tkinter.StringVar()
     sort_var = tkinter.StringVar(value="Date added")
     app_state = AppState(data, selected_category, search_var, sort_var)
+
+    set_low_perf_mode(data.get("settings", {}).get("low_perf_mode", False))
 
     # ── Topbar ────────────────────────────────────────────────────────────────
     topbar = customtkinter.CTkFrame(
@@ -89,7 +92,12 @@ def run() -> None:
 
     # ── Menu frame ────────────────────────────────────────────────────────────
     menu_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
-    build_menu(menu_frame, on_library=lambda: show_library(), on_stats=lambda: show_stats())
+    build_menu(
+        menu_frame,
+        on_library=lambda: show_library(),
+        on_stats=lambda: show_stats(),
+        on_settings=lambda: show_settings(),
+    )
 
     # ── Library frame ─────────────────────────────────────────────────────────
     library_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
@@ -207,10 +215,15 @@ def run() -> None:
     stats_scroll = customtkinter.CTkScrollableFrame(stats_frame, fg_color="transparent", scrollbar_button_color=PINK_MID)
     stats_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
 
+    # ── Settings frame ────────────────────────────────────────────────────────
+    settings_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
+    build_settings(settings_frame, data)
+
     # ── Navigation ────────────────────────────────────────────────────────────
     def show_menu() -> None:
         library_frame.pack_forget()
         stats_frame.pack_forget()
+        settings_frame.pack_forget()
         menu_frame.pack(fill="both", expand=True)
         back_btn.pack_forget()
         search_vn_btn.pack_forget()
@@ -218,6 +231,7 @@ def run() -> None:
     def show_library() -> None:
         menu_frame.pack_forget()
         stats_frame.pack_forget()
+        settings_frame.pack_forget()
         library_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack(side="right", padx=(0, 16), pady=10)
@@ -225,10 +239,19 @@ def run() -> None:
     def show_stats() -> None:
         menu_frame.pack_forget()
         library_frame.pack_forget()
+        settings_frame.pack_forget()
         stats_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack_forget()
         build_stats_dashboard(stats_scroll, data)
+
+    def show_settings() -> None:
+        menu_frame.pack_forget()
+        library_frame.pack_forget()
+        stats_frame.pack_forget()
+        settings_frame.pack(fill="both", expand=True)
+        back_btn.pack(side="left", padx=(8, 0), pady=10)
+        search_vn_btn.pack_forget()
 
     # ── Resize handler ────────────────────────────────────────────────────────
     _resize_job_main = [None]
