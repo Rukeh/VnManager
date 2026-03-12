@@ -39,12 +39,12 @@ def build_settings(parent, data: dict) -> None:
     text_col = customtkinter.CTkFrame(row, fg_color="transparent")
     text_col.pack(side="left", fill="x", expand=True)
     customtkinter.CTkLabel(
-        text_col, text="Low Performance Mode",
+        text_col, text="I need faster render !!!",
         font=FONT_BODY, text_color=TEXT, anchor="w",
     ).pack(anchor="w")
     customtkinter.CTkLabel(
         text_col,
-        text="Replaces tag chips with plain text. Reduces widget count\nper card — helps on low-end hardware.",
+        text="Replaces tag chips with plain text. Reduces widget count\nper card (should help with faster loading, i mean maybe, maybe not i don't know)",
         font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
     ).pack(anchor="w", pady=(2, 0))
 
