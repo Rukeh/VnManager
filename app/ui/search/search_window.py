@@ -2,6 +2,7 @@ import tkinter
 import customtkinter
 from concurrent.futures import ThreadPoolExecutor
 import traceback
+import time
 
 from app.api.vndb import search_vns, search_tags
 from app.ui.search.vn_detail import open_vn_detail
@@ -506,6 +507,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             vns_in_cat = data["vns"].setdefault(cat, [])
             added = not any(v["id"] == vn["id"] for v in vns_in_cat)
             if added:
+                vn["added_at"] = time.time()
                 vns_in_cat.append(vn)
                 save_data(data)
             popup.destroy()
