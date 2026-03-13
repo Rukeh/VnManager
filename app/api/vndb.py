@@ -35,7 +35,7 @@ def search_vns(title: str = "", tag_groups: list = None) -> list:
                     e.g. [["g17", "g542"], ["g34"]] -> (g17 OR g542) AND g34
     """
     url = "https://api.vndb.org/kana/vn"
-    fields = "id, title, alttitle, released, languages, platforms, image.url, length, length_minutes, description, rating, tags.name, tags.rating, tags.spoiler, tags.lie, image.sexual"
+    fields = "id, title, alttitle, released, languages, platforms, image.url, length, length_minutes, description, rating, votecount, tags.name, tags.rating, tags.spoiler, tags.lie, image.sexual"
 
     has_tags = any(g for g in (tag_groups or []))
     parts = []

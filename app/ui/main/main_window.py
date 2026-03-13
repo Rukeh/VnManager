@@ -7,7 +7,6 @@ from app.ui.shared.components import enable_touchpad_scroll, set_low_perf_mode
 from app.ui.main.menu import build_menu
 from app.ui.main.categories import build_categories
 from app.ui.main.library import build_library
-from app.ui.main.stats_dashboard import build_stats_dashboard
 from app.ui.main.settings_panel import build_settings
 from app.ui.search.search_window import open_search_window
 
@@ -95,7 +94,6 @@ def run() -> None:
     build_menu(
         menu_frame,
         on_library=lambda: show_library(),
-        on_stats=lambda: show_stats(),
         on_settings=lambda: show_settings(),
     )
 
@@ -201,20 +199,6 @@ def run() -> None:
 
     build_library(vns_scroll, right_panel, app_state, app)
 
-    # ── Stats frame ───────────────────────────────────────────────────────────
-    stats_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
-
-    stats_header = customtkinter.CTkFrame(stats_frame, fg_color=BG, corner_radius=0, height=52)
-    stats_header.pack(fill="x", padx=20, pady=(14, 0))
-    stats_header.pack_propagate(False)
-    customtkinter.CTkLabel(
-        stats_header, text="Statistics",
-        font=FONT_H1, text_color=TEXT, anchor="w",
-    ).pack(side="left", padx=10, pady=(12, 6))
-
-    stats_scroll = customtkinter.CTkScrollableFrame(stats_frame, fg_color="transparent", scrollbar_button_color=PINK_MID)
-    stats_scroll.pack(fill="both", expand=True, padx=4, pady=(0, 8))
-
     # ── Settings frame ────────────────────────────────────────────────────────
     settings_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
     build_settings(settings_frame, data)
@@ -222,7 +206,6 @@ def run() -> None:
     # ── Navigation ────────────────────────────────────────────────────────────
     def show_menu() -> None:
         library_frame.pack_forget()
-        stats_frame.pack_forget()
         settings_frame.pack_forget()
         menu_frame.pack(fill="both", expand=True)
         back_btn.pack_forget()
@@ -230,25 +213,14 @@ def run() -> None:
 
     def show_library() -> None:
         menu_frame.pack_forget()
-        stats_frame.pack_forget()
         settings_frame.pack_forget()
         library_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack(side="right", padx=(0, 16), pady=10)
 
-    def show_stats() -> None:
-        menu_frame.pack_forget()
-        library_frame.pack_forget()
-        settings_frame.pack_forget()
-        stats_frame.pack(fill="both", expand=True)
-        back_btn.pack(side="left", padx=(8, 0), pady=10)
-        search_vn_btn.pack_forget()
-        build_stats_dashboard(stats_scroll, data)
-
     def show_settings() -> None:
         menu_frame.pack_forget()
         library_frame.pack_forget()
-        stats_frame.pack_forget()
         settings_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack_forget()
@@ -272,7 +244,7 @@ def run() -> None:
 
     app.bind("<Configure>", _on_main_resize)
 
-    enable_touchpad_scroll(app, categories_scroll, vns_scroll, stats_scroll)
+    enable_touchpad_scroll(app, categories_scroll, vns_scroll)
 
     refresh_categories()
     show_menu()
