@@ -2,8 +2,8 @@ import webbrowser
 import customtkinter
 from app.utils.image import load_image_from_url, submit_image_task, cover_size_for_width
 from app.utils.text import clean_description
-from app.ui.theme import *
-from app.ui.components import render_tags, enable_touchpad_scroll, logical_width
+from app.ui.shared.theme import *
+from app.ui.shared.components import render_tags, enable_touchpad_scroll, logical_width
 
 def open_vn_detail(parent, vn: dict) -> None:
     """

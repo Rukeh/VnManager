@@ -4,12 +4,13 @@ from concurrent.futures import ThreadPoolExecutor
 import traceback
 
 from app.api.vndb import search_vns, search_tags
-from app.ui.vn_detail import open_vn_detail
+from app.ui.search.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
-from app.ui.components import render_tags, enable_touchpad_scroll, logical_width
+from app.ui.shared.components import render_tags, enable_touchpad_scroll, logical_width
+from app.utils.save import save_data
 
-from app.ui.theme import *
+from app.ui.shared.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
 
@@ -64,7 +65,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             text_color="#fff" if settings["allow_suggestive"] else PINK_DARK,
             hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID
             ),
-        from app.ui.main_window import save_data
         save_data(data)
         if last_results:
             render_results(last_results)
@@ -76,7 +76,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
             hover_color="#d90764" if settings["allow_explicit"] else PINK_MID
             )
-        from app.ui.main_window import save_data
         save_data(data)
         if last_results:
             render_results(last_results)
@@ -508,7 +507,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             added = not any(v["id"] == vn["id"] for v in vns_in_cat)
             if added:
                 vns_in_cat.append(vn)
-                from app.ui.main_window import save_data
                 save_data(data)
             popup.destroy()
             if added and on_vn_added:

@@ -1,6 +1,6 @@
 import requests
 import customtkinter
-from PIL import Image, ImageDraw, ImageEnhance
+from PIL import Image, ImageDraw
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 
@@ -10,7 +10,18 @@ _session.headers.update({
     "Connection": "close",
 })
 
-_executor = ThreadPoolExecutor(max_workers=4)
+_executor = ThreadPoolExecutor(max_workers=2)
+_bytes_cache: dict[str, bytes] = {}
+
+
+def _fetch_bytes(url: str) -> bytes:
+    if url in _bytes_cache:
+        return _bytes_cache[url]
+    response = _session.get(url, timeout=5)
+    response.raise_for_status()
+    _bytes_cache[url] = response.content
+    return response.content
+
 
 def load_image_from_url(url, size = (150, 200), radius=10):
     """
@@ -24,11 +35,10 @@ def load_image_from_url(url, size = (150, 200), radius=10):
         A CTkImage on success, or None if the request fails
     """
     try:
-        response = _session.get(url, timeout=5)
-        response.raise_for_status()
+        data = _fetch_bytes(url)
         fetch_size = (size[0] * 2, size[1] * 2)
-        img = Image.open(BytesIO(response.content)).convert("RGBA")
-        img = img.resize(fetch_size, Image.LANCZOS)
+        img = Image.open(BytesIO(data)).convert("RGBA")
+        img = img.resize(fetch_size, Image.BILINEAR)
         img = round_image(img, radius * 2)
         img.load()
         return customtkinter.CTkImage(img, size=size)
@@ -66,17 +76,16 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict) -> None:
         images: Dict with "normal" and "dimmed" keys to populate.
     """
     try:
-        response = _session.get(url, timeout=5)
+        data = _fetch_bytes(url)
         fetch_size = (size[0] * 2, size[1] * 2)
-        img_pil = Image.open(BytesIO(response.content)).convert("RGBA")
-        img_pil = img_pil.resize(fetch_size, Image.LANCZOS)
+        img_pil = Image.open(BytesIO(data)).convert("RGBA")
+        img_pil = img_pil.resize(fetch_size, Image.BILINEAR)
         img_pil = round_image(img_pil, 20)
     except Exception:
         return
 
-    dimmed_rgb = ImageEnhance.Brightness(img_pil.convert("RGB")).enhance(0.6)
-    dimmed_rgba = dimmed_rgb.convert("RGBA")
-    dimmed_rgba.putalpha(img_pil.getchannel("A"))
+    overlay = Image.new("RGBA", img_pil.size, (0, 0, 0, 110))
+    dimmed_rgba = Image.alpha_composite(img_pil, overlay)
 
     images["normal"] = customtkinter.CTkImage(img_pil, size=size)
     images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)

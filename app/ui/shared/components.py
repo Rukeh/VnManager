@@ -1,6 +1,13 @@
 import customtkinter
 from app.utils.text import get_clean_tags
-from app.ui.theme import *
+from app.ui.shared.theme import *
+
+_low_perf = [False]
+
+
+def set_low_perf_mode(enabled: bool) -> None:
+    _low_perf[0] = enabled
+
 
 def logical_width(widget) -> int:
     """
@@ -18,6 +25,15 @@ def render_tags(parent, vn: dict, max_tags: int = 6, include_spoilers: bool = Fa
     """Renders tag chips into the given parent frame."""
     tags = get_clean_tags(vn, max_tags=max_tags, include_spoilers=include_spoilers)
     if not tags:
+        return
+    if _low_perf[0]:
+        customtkinter.CTkLabel(
+            parent,
+            text=" · ".join(tags),
+            font=("Quicksand", 10),
+            text_color=TEXT_MUTED,
+            anchor="w",
+        ).pack(anchor="w", pady=(4, 0))
         return
     tag_frame = customtkinter.CTkFrame(parent, fg_color="transparent")
     tag_frame.pack(anchor="w", fill="x", pady=(4, 0))
