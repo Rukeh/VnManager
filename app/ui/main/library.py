@@ -36,7 +36,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
             return sorted(vns, key=lambda v: v.get("released") or "", reverse=True)
         elif sort == "Length":
             return sorted(vns, key=lambda v: v.get("length") or 0, reverse=True)
-        return vns
+        return sorted(vns, key=lambda v: v.get("added_at") or 0, reverse=True)
 
     def refresh_right_panel() -> None:
         """
