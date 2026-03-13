@@ -1,3 +1,6 @@
+import os
+import sys
+import hashlib
 import requests
 import customtkinter
 from PIL import Image, ImageDraw
@@ -14,16 +17,50 @@ _executor = ThreadPoolExecutor(max_workers=2)
 _bytes_cache: dict[str, bytes] = {}
 
 
+def _get_cover_cache_dir() -> str:
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA", os.path.expanduser("~"))
+        return os.path.join(base, "VnManager", "covers")
+    else:
+        base = os.environ.get("XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local", "share"))
+        return os.path.join(base, "vnmanager", "covers")
+
+
+_COVER_CACHE_DIR = _get_cover_cache_dir()
+
+
+def _url_to_cache_path(url: str) -> str:
+    filename = hashlib.md5(url.encode()).hexdigest()
+    return os.path.join(_COVER_CACHE_DIR, filename)
+
+
 def _fetch_bytes(url: str) -> bytes:
     if url in _bytes_cache:
         return _bytes_cache[url]
+
+    cache_path = _url_to_cache_path(url)
+    if os.path.exists(cache_path):
+        with open(cache_path, "rb") as f:
+            data = f.read()
+        _bytes_cache[url] = data
+        return data
+
     response = _session.get(url, timeout=5)
     response.raise_for_status()
-    _bytes_cache[url] = response.content
-    return response.content
+    data = response.content
+    _bytes_cache[url] = data
+
+    try:
+        os.makedirs(_COVER_CACHE_DIR, exist_ok=True)
+        with open(cache_path, "wb") as f:
+            f.write(data)
+    except OSError:
+        pass
+
+    return data
 
 
-def load_image_from_url(url, size = (150, 200), radius=10):
+def load_image_from_url(url, size=(150, 200), radius=10):
     """
     Fetches an image from a URL and returns it as a CTkImage.
     Fetches at 2x the display size so images stay sharp on HiDPI/4K screens.
