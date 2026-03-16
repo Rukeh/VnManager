@@ -112,15 +112,16 @@ def build_settings(parent, data: dict) -> None:
         set_cover_cache_max(limit)
         save_data(data)
 
-    customtkinter.CTkSlider(
+    cache_slider = customtkinter.CTkSlider(
         cache_text_col,
         from_=50, to=2000,
-        number_of_steps=39,  # steps of 50
+        number_of_steps=39,
         command=_on_slider,
         progress_color=PINK,
         button_color=PINK_DARK,
         button_hover_color=PINK_DARK,
-    ).pack(fill="x", pady=(0, 4))
+    )
+    cache_slider.pack(fill="x", pady=(0, 4))
 
     # Current cache size on disk
     def _get_cache_count() -> int:
@@ -157,4 +158,6 @@ def build_settings(parent, data: dict) -> None:
 
     # Initialise slider to saved value
     saved_max = settings.get("cover_cache_max", 500)
-    set_cover_cache_max(saved_max)
+    cache_slider.set(saved_max)
+    slider_label.configure(text=f"{int(cache_slider.get())} images")
+    set_cover_cache_max(int(cache_slider.get()))
