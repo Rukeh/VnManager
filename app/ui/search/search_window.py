@@ -44,6 +44,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     _active_entry = [None]
     _suggest_results = [None]
     _dropdown_mouse_inside = [False]
+    _search_token = [0]
+    _current_query = [""]
+    _current_tag_groups = [[]]
+    _current_page = [0]
+    _has_more_pages = [False]
+    _is_loading_more = [False]
+    _rendered_count = [0]
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -419,6 +426,21 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
     results_frame.pack(fill="both", expand=True, padx=12, pady=10)
 
+    load_more_row = customtkinter.CTkFrame(window, fg_color="transparent")
+    load_more_row.pack(fill="x", padx=12, pady=(0, 10))
+
+    load_more_btn = customtkinter.CTkButton(
+        load_more_row,
+        text="Load more",
+        width=140,
+        height=30,
+        fg_color=PINK_LIGHT,
+        hover_color=PINK_MID,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        corner_radius=20,
+    )
+
     def _submit_image_hover(label, url, size, images):
         future = submit_image_task(async_load_with_hover, label, url, size, images)
         image_futures.append(future)
@@ -526,33 +548,39 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         ).pack(pady=12)
 
     #_____renders______
-    def render_results(api_data: list) -> None:
-        _render_gen[0] += 1
-        _last_rendered_size[:] = [window.winfo_width(), window.winfo_height()]
-        for widget in results_frame.winfo_children():
-            widget.destroy()
+    def _filter_results(api_data: list) -> list:
         max_nsfw_filter = 0
         if settings["allow_suggestive"]:
             max_nsfw_filter = 1
         if settings["allow_explicit"]:
             max_nsfw_filter = 2
-        
-        api_data = [v for v in api_data if (v.get("image") or {}).get('sexual', 0) <= max_nsfw_filter]
+        return [v for v in api_data if (v.get("image") or {}).get('sexual', 0) <= max_nsfw_filter]
 
-        if not api_data:
+    def render_results(api_data: list) -> None:
+        _render_gen[0] += 1
+        _last_rendered_size[:] = [window.winfo_width(), window.winfo_height()]
+        for widget in results_frame.winfo_children():
+            widget.destroy()
+        filtered_data = _filter_results(api_data)
+        _rendered_count[0] = 0
+
+        if not filtered_data:
             customtkinter.CTkLabel(
                 results_frame,
                 text="No results found.",
                 text_color="gray",
             ).pack(pady=20)
+            _update_load_more_button()
             return
 
         if view_mode.get() == "list":
-            _render_list(api_data, _render_gen[0])
+            _render_list(filtered_data, _render_gen[0], start_index=0)
         else:
-            _render_grid(api_data, _render_gen[0])
+            _render_grid(filtered_data, _render_gen[0], start_index=0)
+        _rendered_count[0] = len(filtered_data)
+        _update_load_more_button()
 
-    def _render_list(api_data: list, gen: int) -> None:
+    def _render_list(api_data: list, gen: int, start_index: int = 0) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "list")
         BATCH = 5
 
@@ -660,7 +688,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         _render_batch(0)
 
-    def _render_grid(api_data: list, gen: int) -> None:
+    def _render_grid(api_data: list, gen: int, start_index: int = 0) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "grid")
         card_width = cover_size[0] + 30
         columns = max(1, logical_width(window) // card_width)
@@ -673,7 +701,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             if _render_gen[0] != gen:
                 return
             for i, vn in enumerate(api_data[index : index + BATCH]):
-                idx = index + i
+                idx = start_index + index + i
                 year = (vn.get("released") or "?")[:4]
                 img_url = (vn.get("image") or {}).get("url", "")
                 row, col = divmod(idx, columns)
@@ -750,6 +778,100 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         _render_batch(0)
 
+    def _append_render_results(api_data: list) -> None:
+        filtered_data = _filter_results(api_data)
+        if not filtered_data:
+            _update_load_more_button()
+            return
+        _render_gen[0] += 1
+        gen = _render_gen[0]
+        start_index = _rendered_count[0]
+        if view_mode.get() == "list":
+            _render_list(filtered_data, gen, start_index=start_index)
+        else:
+            _render_grid(filtered_data, gen, start_index=start_index)
+        _rendered_count[0] += len(filtered_data)
+        _update_load_more_button()
+
+    def _set_load_more_loading(loading: bool) -> None:
+        _is_loading_more[0] = loading
+        _update_load_more_button()
+
+    def _update_load_more_button() -> None:
+        should_show = bool(last_results) and (_has_more_pages[0] or _is_loading_more[0])
+        if not should_show:
+            load_more_btn.pack_forget()
+            return
+        load_more_btn.configure(
+            text="Loading..." if _is_loading_more[0] else "Load more",
+            state="disabled" if _is_loading_more[0] else "normal",
+        )
+        if not load_more_btn.winfo_manager():
+            load_more_btn.pack(pady=(2, 8))
+
+    def _merge_results(existing: list, incoming: list) -> tuple[list, list]:
+        merged = list(existing)
+        seen_ids = {v.get("id") for v in merged}
+        added = []
+        for vn in incoming:
+            vn_id = vn.get("id")
+            if vn_id is None or vn_id not in seen_ids:
+                merged.append(vn)
+                added.append(vn)
+                if vn_id is not None:
+                    seen_ids.add(vn_id)
+        return merged, added
+
+    def _load_more() -> None:
+        if _is_loading_more[0] or not _has_more_pages[0]:
+            return
+        _set_load_more_loading(True)
+        token_snapshot = _search_token[0]
+        page_snapshot = _current_page[0] + 1
+        query_snapshot = _current_query[0]
+        tg_snapshot = [list(g) for g in _current_tag_groups[0]]
+
+        def _search_next_page():
+            try:
+                api_data, has_more = search_vns(
+                    title=query_snapshot,
+                    tag_groups=tg_snapshot,
+                    page=page_snapshot,
+                )
+            except Exception as e:
+                traceback.print_exc()
+                window.after(0, lambda e=e: _show_error(e, clear_results=False))
+                return
+            window.after(0, lambda: _show_more_results(token_snapshot, page_snapshot, api_data, has_more))
+
+        _search_executor.submit(_search_next_page)
+
+    def _show_error(error, clear_results: bool = True):
+        _set_load_more_loading(False)
+        if clear_results:
+            for widget in results_frame.winfo_children():
+                widget.destroy()
+            _rendered_count[0] = 0
+            customtkinter.CTkLabel(
+                results_frame,
+                text=f'Search failed. Please check your internet connection and try again. Error: {error}',
+                font=FONT_BODY,
+                text_color="#f87171",
+                wraplength=400
+            ).pack(pady=30)
+        _has_more_pages[0] = False
+        _update_load_more_button()
+
+    def _show_more_results(token: int, page: int, api_data: list, has_more: bool) -> None:
+        if token != _search_token[0]:
+            return
+        _set_load_more_loading(False)
+        _current_page[0] = page
+        _has_more_pages[0] = has_more
+        merged_results, added_results = _merge_results(last_results, api_data)
+        last_results[:] = merged_results
+        _append_render_results(added_results)
+
     def do_search() -> None:
         query = entry.get().strip()
         tg = [[t["id"] for t in group] for group in tag_groups if group]
@@ -759,6 +881,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         _cancel_image_tasks()
         _close_dropdown()
+        _set_load_more_loading(False)
+        _rendered_count[0] = 0
 
         for widget in results_frame.winfo_children():
             widget.destroy()
@@ -774,31 +898,29 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         tg_snapshot = [list(g) for g in tg]
         query_snapshot = query
+        _search_token[0] += 1
+        token_snapshot = _search_token[0]
+        _current_query[0] = query_snapshot
+        _current_tag_groups[0] = tg_snapshot
+        _current_page[0] = 1
+        _has_more_pages[0] = False
 
         def _search():
             try:
-                api_data = search_vns(title=query_snapshot, tag_groups=tg_snapshot)
+                api_data, has_more = search_vns(title=query_snapshot, tag_groups=tg_snapshot, page=1)
             except Exception as e:
                 traceback.print_exc()
                 window.after(0, lambda e=e: _show_error(e))
                 return
-            window.after(0, lambda: _show_results(api_data))
+            window.after(0, lambda: _show_results(token_snapshot, api_data, has_more))
 
-        def _show_error(error):
-            for widget in results_frame.winfo_children():
-                widget.destroy()
-            customtkinter.CTkLabel(
-                results_frame,
-                text=f'Search failed. Please check your internet connection and try again. Error: {error}',
-                font=FONT_BODY,
-                text_color="#f87171", 
-                wraplength=400
-            ).pack(pady=30)
-
-        def _show_results(api_data):
+        def _show_results(token: int, api_data: list, has_more: bool):
+            if token != _search_token[0]:
+                return
             last_results.clear()
             last_results.extend(api_data)
-            render_results(api_data)
+            _has_more_pages[0] = has_more
+            render_results(last_results)
 
         _search_executor.submit(_search)
 
@@ -839,4 +961,5 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     window.bind("<Configure>", _on_resize)
 
     entry.bind("<Return>", lambda _e: do_search())
+    load_more_btn.configure(command=_load_more)
     enable_touchpad_scroll(window, results_frame)

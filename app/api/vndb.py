@@ -24,10 +24,10 @@ def _post_with_retry(url: str, payload: dict) -> dict:
     raise last_exc
 
 
-def search_vns(title: str = "", tag_groups: list = None) -> list:
+def search_vns(title: str = "", tag_groups: list = None, page: int = 1) -> tuple[list, bool]:
     """
     Searches VnDB for visual novels matching the given title and/or tag groups.
-    Returns a list of results from the VNDB Kana API.
+    Returns (results, has_more) from the VNDB Kana API.
     Args:
         title:      Title query string. Can be empty if tag_groups are provided.
         tag_groups: List of lists of VNDB tag ID strings.
@@ -65,11 +65,13 @@ def search_vns(title: str = "", tag_groups: list = None) -> list:
         "fields": fields,
         "results": 35 if has_tags else 50,
         "sort": "rating" if has_tags else "searchrank",
+        "page": max(1, int(page)),
     }
     if has_tags:
         payload["reverse"] = True
 
-    return _post_with_retry(url, payload)["results"]
+    response_data = _post_with_retry(url, payload)
+    return response_data.get("results", []), bool(response_data.get("more", False))
 
 
 def search_tags(query: str) -> list:
