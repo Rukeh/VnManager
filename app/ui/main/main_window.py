@@ -1,3 +1,4 @@
+import os
 import tkinter
 import customtkinter
 
@@ -9,6 +10,18 @@ from app.ui.main.categories import build_categories
 from app.ui.main.library import build_library
 from app.ui.main.settings_panel import build_settings
 from app.ui.search.search_window import open_search_window
+
+
+def _apply_app_icon(app: customtkinter.CTk) -> None:
+    icon_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "assets", "icon.png")
+    )
+    try:
+        icon_image = tkinter.PhotoImage(file=icon_path)
+        app.iconphoto(True, icon_image)
+        app._icon_image = icon_image
+    except (tkinter.TclError, FileNotFoundError):
+        pass
 
 
 class AppState:
@@ -31,6 +44,7 @@ def run() -> None:
     app.geometry("1280x720")
     app.title("VnManager")
     app.configure(fg_color=BG)
+    _apply_app_icon(app)
 
     data = load_data()
     selected_category = [None]
