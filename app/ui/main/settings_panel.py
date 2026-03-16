@@ -1,6 +1,8 @@
+import os
 import customtkinter
 from app.ui.shared.theme import *
 from app.ui.shared.components import set_low_perf_mode
+from app.utils.image import set_cover_cache_max, _COVER_CACHE_DIR
 from app.utils.save import save_data
 
 
@@ -24,7 +26,7 @@ def build_settings(parent, data: dict) -> None:
     scroll = customtkinter.CTkScrollableFrame(parent, fg_color="transparent", scrollbar_button_color=PINK_MID)
     scroll.pack(fill="both", expand=True, padx=16, pady=(8, 16))
 
-    #for performance (may work may not idk help me optimize this shit)
+    # ── Performance ───────────────────────────────────────────────────────────
     customtkinter.CTkLabel(
         scroll, text="PERFORMANCE",
         font=("Nunito", 10, "bold"), text_color=TEXT_MUTED, anchor="w",
@@ -65,3 +67,94 @@ def build_settings(parent, data: dict) -> None:
         button_hover_color=PINK_DARK,
         command=lambda: _toggle(switch_var.get()),
     ).pack(side="right", padx=(16, 0))
+
+    # ── Cover cache ───────────────────────────────────────────────────────────
+    customtkinter.CTkLabel(
+        scroll, text="COVER CACHE",
+        font=("Nunito", 10, "bold"), text_color=TEXT_MUTED, anchor="w",
+    ).pack(anchor="w", padx=4, pady=(12, 4))
+
+    cache_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+    cache_card.pack(fill="x", pady=(0, 8))
+
+    cache_inner = customtkinter.CTkFrame(cache_card, fg_color="transparent")
+    cache_inner.pack(fill="x", padx=16, pady=14)
+
+    cache_text_col = customtkinter.CTkFrame(cache_inner, fg_color="transparent")
+    cache_text_col.pack(fill="x")
+
+    cache_title_row = customtkinter.CTkFrame(cache_text_col, fg_color="transparent")
+    cache_title_row.pack(fill="x")
+
+    customtkinter.CTkLabel(
+        cache_title_row, text="Max cached covers",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(side="left")
+
+    current_max = settings.get("cover_cache_max", 500)
+    slider_label = customtkinter.CTkLabel(
+        cache_title_row,
+        text=f"{current_max} images",
+        font=("Nunito", 12, "bold"), text_color=PINK_DARK, anchor="e",
+    )
+    slider_label.pack(side="right")
+
+    customtkinter.CTkLabel(
+        cache_text_col,
+        text="Oldest covers are deleted automatically when the limit is reached.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 8))
+
+    def _on_slider(val: float) -> None:
+        limit = int(val)
+        slider_label.configure(text=f"{limit} images")
+        settings["cover_cache_max"] = limit
+        set_cover_cache_max(limit)
+        save_data(data)
+
+    customtkinter.CTkSlider(
+        cache_text_col,
+        from_=50, to=2000,
+        number_of_steps=39,  # steps of 50
+        command=_on_slider,
+        progress_color=PINK,
+        button_color=PINK_DARK,
+        button_hover_color=PINK_DARK,
+    ).pack(fill="x", pady=(0, 4))
+
+    # Current cache size on disk
+    def _get_cache_count() -> int:
+        try:
+            return len(os.listdir(_COVER_CACHE_DIR))
+        except OSError:
+            return 0
+
+    count = _get_cache_count()
+    cache_info_label = customtkinter.CTkLabel(
+        cache_text_col,
+        text=f"Currently {count} covers cached on disk.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",
+    )
+    cache_info_label.pack(anchor="w", pady=(0, 4))
+
+    def _clear_cache() -> None:
+        try:
+            for f in os.listdir(_COVER_CACHE_DIR):
+                os.remove(os.path.join(_COVER_CACHE_DIR, f))
+        except OSError:
+            pass
+        cache_info_label.configure(text="Currently 0 covers cached on disk.")
+
+    customtkinter.CTkButton(
+        cache_text_col,
+        text="🗑  Clear cache",
+        width=120, height=28,
+        fg_color=PINK_LIGHT, hover_color=PINK,
+        text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_clear_cache,
+    ).pack(anchor="w", pady=(4, 0))
+
+    # Initialise slider to saved value
+    saved_max = settings.get("cover_cache_max", 500)
+    set_cover_cache_max(saved_max)

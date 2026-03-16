@@ -34,6 +34,28 @@ def _url_to_cache_path(url: str) -> str:
     return os.path.join(_COVER_CACHE_DIR, filename)
 
 
+_cover_cache_max = [500]
+
+
+def set_cover_cache_max(limit: int) -> None:
+    _cover_cache_max[0] = limit
+
+
+def _evict_oldest(max_files: int) -> None:
+    try:
+        files = [
+            os.path.join(_COVER_CACHE_DIR, f)
+            for f in os.listdir(_COVER_CACHE_DIR)
+        ]
+        if len(files) <= max_files:
+            return
+        files.sort(key=lambda p: os.path.getmtime(p))
+        for path in files[:len(files) - max_files]:
+            os.remove(path)
+    except OSError:
+        pass
+
+
 def _fetch_bytes(url: str) -> bytes:
     if url in _bytes_cache:
         return _bytes_cache[url]
@@ -54,6 +76,7 @@ def _fetch_bytes(url: str) -> bytes:
         os.makedirs(_COVER_CACHE_DIR, exist_ok=True)
         with open(cache_path, "wb") as f:
             f.write(data)
+        _evict_oldest(_cover_cache_max[0])
     except OSError:
         pass
 
