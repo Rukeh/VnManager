@@ -362,11 +362,19 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     fg_color=PINK_DARK, corner_radius=6,
                 ).pack(side="left", padx=4, ipadx=5, ipady=1)
 
-            group_row = customtkinter.CTkFrame(tag_groups_frame, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=8)
+            group_row = customtkinter.CTkFrame(
+                tag_groups_frame,
+                fg_color=CARD_BG,
+                border_width=1,
+                border_color=BORDER,
+                corner_radius=8,
+                height=34,
+            )
             group_row.pack(fill="x", pady=(1, 0))
+            group_row.pack_propagate(False)
 
             chips_area = customtkinter.CTkFrame(group_row, fg_color="transparent")
-            chips_area.pack(side="left", fill="y", padx=(4, 0), pady=3)
+            chips_area.pack(side="left", padx=(4, 0), pady=3)
 
             for c_idx, tag in enumerate(group):
                 if c_idx > 0:
