@@ -63,7 +63,7 @@ def search_vns(title: str = "", tag_groups: list = None, page: int = 1) -> tuple
     payload = {
         "filters": final_filter,
         "fields": fields,
-        "results": 35 if has_tags else 50,
+        "results": 15 if has_tags else 23,
         "sort": "rating" if has_tags else "searchrank",
         "page": max(1, int(page)),
     }
