@@ -10,6 +10,7 @@ from app.ui.main.categories import build_categories
 from app.ui.main.library import build_library
 from app.ui.main.settings_panel import build_settings
 from app.ui.search.search_window import open_search_window
+from app.utils.image import set_cache_main_only, set_cover_cache_max
 
 
 def _apply_app_icon(app: customtkinter.CTk) -> None:
@@ -53,6 +54,8 @@ def run() -> None:
     app_state = AppState(data, selected_category, search_var, sort_var)
 
     set_low_perf_mode(data.get("settings", {}).get("low_perf_mode", False))
+    set_cover_cache_max(int(data.get("settings", {}).get("cover_cache_max", 500)))
+    set_cache_main_only(bool(data.get("settings", {}).get("cache_main_only", False)))
 
     # ── Topbar ────────────────────────────────────────────────────────────────
     topbar = customtkinter.CTkFrame(

@@ -450,7 +450,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     )
 
     def _submit_image_hover(label, url, size, images):
-        future = submit_image_task(async_load_with_hover, label, url, size, images)
+        future = submit_image_task(async_load_with_hover, label, url, size, images, "search")
         image_futures.append(future)
 
     def _cancel_image_tasks():
@@ -629,7 +629,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 for widget in (cover_frame, img_label):
                     widget.bind("<Enter>", on_enter)
                     widget.bind("<Leave>", on_leave)
-                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
 
                 text_frame = customtkinter.CTkFrame(inner, fg_color="transparent")
                 text_frame.pack(side="left", fill="both", expand=True)
@@ -644,7 +644,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     cursor="hand2",
                 )
                 title_lbl.pack(fill="x")
-                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
                 title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, tf=text_frame: lbl.configure(wraplength=max(100, logical_width(tf) - 8)))
 
                 cats = _get_vn_categories(vn["id"])
@@ -740,7 +740,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 for widget in (cover_frame, img_label):
                     widget.bind("<Enter>", on_enter)
                     widget.bind("<Leave>", on_leave)
-                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
 
                 title_lbl = customtkinter.CTkLabel(
                     card,
@@ -752,7 +752,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     cursor="hand2",
                 )
                 title_lbl.pack(padx=6)
-                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v))
+                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
                 title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 8)))
 
                 cats = _get_vn_categories(vn["id"])

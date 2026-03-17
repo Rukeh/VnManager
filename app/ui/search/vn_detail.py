@@ -5,7 +5,7 @@ from app.utils.text import clean_description
 from app.ui.shared.theme import *
 from app.ui.shared.components import render_tags, enable_touchpad_scroll, logical_width
 
-def open_vn_detail(parent, vn: dict) -> None:
+def open_vn_detail(parent, vn: dict, cache_context: str = "main") -> None:
     """
     Opens a detail popup for a VN.
     Can be called from any window.
@@ -16,7 +16,7 @@ def open_vn_detail(parent, vn: dict) -> None:
     _cover_ctk_img = [None]
 
     def _async_load_image(label, url, size):
-        img = load_image_from_url(url, size=size)
+        img = load_image_from_url(url, size=size, cache_context=cache_context)
         if img:
             _cover_ctk_img[0] = img
             def _apply():

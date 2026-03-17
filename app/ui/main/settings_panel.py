@@ -2,7 +2,7 @@ import os
 import customtkinter
 from app.ui.shared.theme import *
 from app.ui.shared.components import set_low_perf_mode
-from app.utils.image import set_cover_cache_max, _COVER_CACHE_DIR
+from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CACHE_DIR
 from app.utils.save import save_data
 
 
@@ -105,6 +105,51 @@ def build_settings(parent, data: dict) -> None:
         font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
     ).pack(anchor="w", pady=(2, 8))
 
+    scope_row = customtkinter.CTkFrame(cache_text_col, fg_color="transparent")
+    scope_row.pack(fill="x", pady=(0, 8))
+
+    customtkinter.CTkLabel(
+        scope_row,
+        text="Cache scope",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(side="left")
+
+    scope_button = customtkinter.CTkButton(
+        scope_row,
+        text="",
+        width=170,
+        height=28,
+        fg_color=PINK_LIGHT,
+        hover_color=PINK_MID,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        corner_radius=20,
+    )
+    scope_button.pack(side="right")
+
+    customtkinter.CTkLabel(
+        cache_text_col,
+        text="Choose whether search results also populate cache.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(0, 8))
+
+    def _apply_cache_scope_ui() -> None:
+        main_only = bool(settings.get("cache_main_only", False))
+        set_cache_main_only(main_only)
+        scope_button.configure(
+            text="Main window only" if main_only else "All windows",
+            fg_color=PINK if main_only else PINK_LIGHT,
+            hover_color=PINK_DARK if main_only else PINK_MID,
+            text_color="#fff" if main_only else PINK_DARK,
+        )
+
+    def _toggle_cache_scope() -> None:
+        settings["cache_main_only"] = not bool(settings.get("cache_main_only", False))
+        _apply_cache_scope_ui()
+        save_data(data)
+
+    scope_button.configure(command=_toggle_cache_scope)
+
     def _on_slider(val: float) -> None:
         limit = int(val)
         slider_label.configure(text=f"{limit} images")
@@ -161,3 +206,4 @@ def build_settings(parent, data: dict) -> None:
     cache_slider.set(saved_max)
     slider_label.configure(text=f"{int(cache_slider.get())} images")
     set_cover_cache_max(int(cache_slider.get()))
+    _apply_cache_scope_ui()
