@@ -9,3 +9,4 @@ VnManager.spec
 VnManager-x86_64.AppImage
 build-appimage.sh
 vnmanager.desktop
+.github/
