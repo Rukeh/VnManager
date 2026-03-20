@@ -434,6 +434,12 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     results_frame = customtkinter.CTkScrollableFrame(window, fg_color='transparent', scrollbar_button_color=PINK_MID)
     results_frame.pack(fill="both", expand=True, padx=12, pady=10)
 
+    def _scroll_results_to_top() -> None:
+        try:
+            results_frame._parent_canvas.yview_moveto(0)
+        except Exception:
+            pass
+
     load_more_row = customtkinter.CTkFrame(window, fg_color="transparent")
     load_more_row.pack(fill="x", padx=12, pady=(0, 10))
 
@@ -891,6 +897,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         _close_dropdown()
         _set_load_more_loading(False)
         _rendered_count[0] = 0
+        _scroll_results_to_top()
 
         for widget in results_frame.winfo_children():
             widget.destroy()
