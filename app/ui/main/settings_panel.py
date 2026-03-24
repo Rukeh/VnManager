@@ -1,6 +1,8 @@
 import os
+import sys
 import customtkinter
 from app.ui.shared.theme import *
+from app.ui.shared.theme import list_themes, get_active_theme_name
 from app.ui.shared.components import set_low_perf_mode
 from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CACHE_DIR
 from app.utils.save import save_data
@@ -31,6 +33,51 @@ def build_settings(parent, data: dict) -> None:
         scroll, text="PERFORMANCE",
         font=("Nunito", 10, "bold"), text_color=TEXT_MUTED, anchor="w",
     ).pack(anchor="w", padx=4, pady=(8, 4))
+
+    theme_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+    theme_card.pack(fill="x", pady=(0, 8))
+
+    theme_row = customtkinter.CTkFrame(theme_card, fg_color="transparent")
+    theme_row.pack(fill="x", padx=16, pady=14)
+
+    theme_text_col = customtkinter.CTkFrame(theme_row, fg_color="transparent")
+    theme_text_col.pack(side="left", fill="x", expand=True)
+    customtkinter.CTkLabel(
+        theme_text_col, text="Theme",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(anchor="w")
+    customtkinter.CTkLabel(
+        theme_text_col,
+        text="Switch app theme instantly from settings.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 0))
+
+    available_themes = list(list_themes())
+    current_theme = settings.get("theme_name", get_active_theme_name())
+    if current_theme not in available_themes:
+        current_theme = available_themes[0]
+    settings["theme_name"] = current_theme
+
+    def _switch_theme() -> None:
+        current = settings.get("theme_name", available_themes[0])
+        idx = available_themes.index(current) if current in available_themes else 0
+        next_theme = available_themes[(idx + 1) % len(available_themes)]
+        settings["theme_name"] = next_theme
+        save_data(data)
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
+    customtkinter.CTkButton(
+        theme_row,
+        text=f"{settings['theme_name'].capitalize()}  ↻",
+        width=170,
+        height=30,
+        fg_color=PINK_LIGHT,
+        hover_color=PINK_MID,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_switch_theme,
+    ).pack(side="right")
 
     perf_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
     perf_card.pack(fill="x", pady=(0, 8))
