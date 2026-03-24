@@ -193,7 +193,7 @@ def build_settings(parent, data: dict) -> None:
 
     customtkinter.CTkButton(
         cache_text_col,
-        text="🗑  Clear cache",
+        text="Clear cache",
         width=120, height=28,
         fg_color=PINK_LIGHT, hover_color=PINK,
         text_color=PINK_DARK, font=("Nunito", 12, "bold"),

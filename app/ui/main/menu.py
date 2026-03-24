@@ -50,5 +50,5 @@ def build_menu(parent, on_library, on_settings) -> None:
             widget.bind("<Enter>", _on_enter)
             widget.bind("<Leave>", _on_leave)
 
-    _make_card(cards_row, "📚", "My Library", "Browse & manage your VNs", on_library)
-    _make_card(cards_row, "⚙️", "Settings", "Performance & preferences", on_settings)
+    _make_card(cards_row, "X", "My Library", "Browse & manage your VNs", on_library)
+    _make_card(cards_row, "X", "Settings", "Performance & preferences", on_settings)
