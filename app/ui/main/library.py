@@ -100,7 +100,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 submit_image_task(async_load_with_hover, img_label, img_url, cover_size, _images)
 
             def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color="#c9a0b4")
+                cf.configure(fg_color=COVER_HOVER_BG)
                 if imgs["dimmed"]:
                     lbl.configure(image=imgs["dimmed"])
             def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
@@ -257,7 +257,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
         btn_row = customtkinter.CTkFrame(popup, fg_color="transparent")
         btn_row.pack(pady=12)
         customtkinter.CTkButton(btn_row, text="Cancel", width=80, fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK, font=FONT_TITLE, corner_radius=20, command=popup.destroy).pack(side="left", padx=6)
-        customtkinter.CTkButton(btn_row, text="Save", width=80, fg_color=PINK, hover_color=PINK_DARK, text_color="#fff", font=FONT_TITLE, corner_radius=20, command=confirm).pack(side="left", padx=6)
+        customtkinter.CTkButton(btn_row, text="Save", width=80, fg_color=PINK, hover_color=PINK_DARK, text_color=WHITE, font=FONT_TITLE, corner_radius=20, command=confirm).pack(side="left", padx=6)
 
         popup.bind("<Escape>", lambda _e: popup.destroy())
 
@@ -286,7 +286,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 width=100,
                 fg_color=PINK,
                 hover_color=PINK_DARK,
-                text_color="#fff",
+                text_color=WHITE,
                 font=FONT_TITLE,
                 corner_radius=20,
                 command=popup.destroy,
@@ -342,7 +342,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 width=100,
                 fg_color=PINK,
                 hover_color=PINK_DARK,
-                text_color="#fff",
+                text_color=WHITE,
                 font=FONT_TITLE,
                 corner_radius=20,
                 command=confirm,

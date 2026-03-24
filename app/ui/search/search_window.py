@@ -70,8 +70,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         settings["allow_suggestive"] = not settings["allow_suggestive"]
         btn_suggestive.configure(
             fg_color=PINK if settings["allow_suggestive"] else PINK_LIGHT,
-            text_color="#fff" if settings["allow_suggestive"] else PINK_DARK,
-            hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID
+            text_color=WHITE if settings["allow_suggestive"] else PINK_DARK,
+            hover_color=PINK_ACCENT_HOVER if settings["allow_suggestive"] else PINK_MID
             ),
         save_data(data)
         if last_results:
@@ -81,8 +81,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         settings["allow_explicit"] = not settings["allow_explicit"]
         btn_explicit.configure(
             fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
-            text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
-            hover_color="#d90764" if settings["allow_explicit"] else PINK_MID
+            text_color=WHITE if settings["allow_explicit"] else PINK_DARK,
+            hover_color=PINK_ACCENT_HOVER if settings["allow_explicit"] else PINK_MID
             )
         save_data(data)
         if last_results:
@@ -91,8 +91,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     btn_suggestive = customtkinter.CTkButton(
         top_bar, text="🌸 Suggestive", width=100,
         fg_color=PINK if settings["allow_suggestive"] else PINK_LIGHT,
-        hover_color="#d90764" if settings["allow_suggestive"] else PINK_MID, 
-        text_color="#fff" if settings["allow_suggestive"] else PINK_DARK,
+        hover_color=PINK_ACCENT_HOVER if settings["allow_suggestive"] else PINK_MID, 
+        text_color=WHITE if settings["allow_suggestive"] else PINK_DARK,
         font=("Nunito", 12, "bold"), corner_radius=20,
         command=_toggle_suggestive,
     )
@@ -101,14 +101,14 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     btn_explicit = customtkinter.CTkButton(
         top_bar, text="🚫 Explicit", width=90,
         fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
-        hover_color="#d90764" if settings["allow_explicit"] else PINK_MID,
-        text_color="#fff" if settings["allow_explicit"] else PINK_DARK,
+        hover_color=PINK_ACCENT_HOVER if settings["allow_explicit"] else PINK_MID,
+        text_color=WHITE if settings["allow_explicit"] else PINK_DARK,
         font=("Nunito", 12, "bold"), corner_radius=20,
         command=_toggle_explicit,
     )
     btn_explicit.pack(side="right", padx=(0, 4))
 
-    search_btn = customtkinter.CTkButton(top_bar, text="Search", width=80,fg_color=PINK, hover_color=PINK_DARK,text_color="#fff", font = ("Nunito", 13, "bold"), corner_radius=20, command=lambda :do_search())
+    search_btn = customtkinter.CTkButton(top_bar, text="Search", width=80,fg_color=PINK, hover_color=PINK_DARK,text_color=WHITE, font = ("Nunito", 13, "bold"), corner_radius=20, command=lambda :do_search())
     search_btn.pack(side="right", padx=(0,6))
 
     tag_toggle_btn = customtkinter.CTkButton(
@@ -168,7 +168,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if count:
             tag_toggle_btn.configure(
                 text=f"🏷️ Tags ({count})",
-                fg_color=PINK, text_color="#fff", hover_color=PINK_DARK,
+                fg_color=PINK, text_color=WHITE, hover_color=PINK_DARK,
             )
         else:
             tag_toggle_btn.configure(
@@ -358,7 +358,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 sep_row.pack(fill="x", pady=(1, 0))
                 customtkinter.CTkLabel(
                     sep_row, text="AND",
-                    font=("Nunito", 9, "bold"), text_color="#ffffff",
+                    font=("Nunito", 9, "bold"), text_color=WHITE,
                     fg_color=PINK_DARK, corner_radius=6,
                 ).pack(side="left", padx=4, ipadx=5, ipady=1)
 
@@ -421,7 +421,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             customtkinter.CTkButton(
                 group_row, text="✕", width=20, height=20,
                 fg_color="transparent", hover_color=PINK_MID,
-                text_color="#cc4444", font=("Nunito", 10, "bold"),
+                text_color=TEXT_DANGER, font=("Nunito", 10, "bold"),
                 corner_radius=10,
                 command=lambda gi=g_idx: _remove_group(gi),
             ).pack(side="right", padx=(0, 4), pady=3)
@@ -485,7 +485,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             width=80,
             fg_color=PINK,
             hover_color=PINK_DARK,
-            text_color="#fff",
+            text_color=WHITE,
             corner_radius=20, 
             command=popup.destroy).pack()
             return
@@ -555,7 +555,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         width=100, 
         fg_color=PINK,
         hover_color=PINK_DARK,
-        text_color="#fff",
+        text_color=WHITE,
         font=FONT_TITLE,
         corner_radius=20,
         command=confirm
@@ -624,7 +624,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     _submit_image_hover(img_label, img_url, cover_size, _images)
 
                 def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                    cf.configure(fg_color="#c9a0b4")
+                    cf.configure(fg_color=COVER_HOVER_BG)
                     if imgs["dimmed"]:
                         lbl.configure(image=imgs["dimmed"])
                 def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
@@ -659,8 +659,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                         text_frame,
                         text="✓  " + ", ".join(cats),
                         font=("Nunito", 11, "bold"),
-                        text_color="#9b6dbd",
-                        fg_color="#e8d5f5",
+                        text_color=STATUS_BADGE_TEXT,
+                        fg_color=STATUS_BADGE_BG,
                         corner_radius=20,
                         anchor="w",
                     ).pack(anchor="w", pady=(2, 4))
@@ -735,7 +735,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     _submit_image_hover(img_label, img_url, cover_size, _images)
 
                 def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                    cf.configure(fg_color="#c9a0b4")
+                    cf.configure(fg_color=COVER_HOVER_BG)
                     if imgs["dimmed"]:
                         lbl.configure(image=imgs["dimmed"])
                 def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
@@ -767,8 +767,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                         card,
                         text="✓  " + ", ".join(cats),
                         font=("Nunito", 10, "bold"),
-                        text_color="#9b6dbd",
-                        fg_color="#e8d5f5",
+                        text_color=STATUS_BADGE_TEXT,
+                        fg_color=STATUS_BADGE_BG,
                         corner_radius=20,
                     ).pack(pady=(2, 4), padx=6)
 
@@ -870,7 +870,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                 results_frame,
                 text=f'Search failed. Please check your internet connection and try again. Error: {error}',
                 font=FONT_BODY,
-                text_color="#f87171",
+                text_color=TEXT_ERROR,
                 wraplength=400
             ).pack(pady=30)
         _has_more_pages[0] = False

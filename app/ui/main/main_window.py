@@ -89,7 +89,7 @@ def run() -> None:
         font=FONT_TITLE,
         fg_color=PINK,
         hover_color=PINK_DARK,
-        text_color="#ffffff",
+        text_color=WHITE,
         corner_radius=20,
         height=34,
         width=130,

@@ -116,7 +116,7 @@ def build_categories(categories_scroll, category_entry, app_state, app):
             width=100,
             fg_color=PINK,
             hover_color=PINK_DARK,
-            text_color="#fff",
+            text_color=WHITE,
             font=FONT_TITLE,
             corner_radius=20,
             command=confirm,
@@ -156,8 +156,8 @@ def build_categories(categories_scroll, category_entry, app_state, app):
                         app_state.refresh_library()
                 refresh_categories()
 
-        customtkinter.CTkButton(btn_frame, text="Cancel", width=80, text_color="#fff", fg_color=PINK_MID, hover_color="#f7b2d9", command=popup.destroy).pack(side="left", padx=8)
-        customtkinter.CTkButton(btn_frame, text="Delete", width=80, text_color="#fff", fg_color="#db6098", hover_color="#d41167", command=confirm).pack(side="left", padx=8)
+        customtkinter.CTkButton(btn_frame, text="Cancel", width=80, text_color=WHITE, fg_color=PINK_MID, hover_color=PINK_HOVER_SOFT, command=popup.destroy).pack(side="left", padx=8)
+        customtkinter.CTkButton(btn_frame, text="Delete", width=80, text_color=WHITE, fg_color=PINK_DANGER, hover_color=PINK_DANGER_HOVER, command=confirm).pack(side="left", padx=8)
 
     def refresh_categories() -> None:
         """
@@ -181,7 +181,7 @@ def build_categories(categories_scroll, category_entry, app_state, app):
                 height=28,
                 fg_color="transparent",
                 hover_color=PINK_MID,
-                text_color="#cc4444",
+                text_color=TEXT_DANGER,
                 command=lambda c=category: delete_category(c),
             ).pack(side="right", padx=(2, 4))
 
@@ -206,7 +206,7 @@ def build_categories(categories_scroll, category_entry, app_state, app):
             customtkinter.CTkLabel(
                 badge, text=str(count),
                 font=("Nunito", 10, "bold"),
-                text_color="#fff" if is_active else PINK_DARK,
+                text_color=WHITE if is_active else PINK_DARK,
             ).place(relx=0.5, rely=0.5, anchor="center")
 
             if is_active:

@@ -140,7 +140,7 @@ def build_settings(parent, data: dict) -> None:
             text="Main window only" if main_only else "All windows",
             fg_color=PINK if main_only else PINK_LIGHT,
             hover_color=PINK_DARK if main_only else PINK_MID,
-            text_color="#fff" if main_only else PINK_DARK,
+            text_color=WHITE if main_only else PINK_DARK,
         )
 
     def _toggle_cache_scope() -> None:
