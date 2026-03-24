@@ -46,6 +46,29 @@ def set_cache_main_only(enabled: bool) -> None:
     _cache_main_only[0] = bool(enabled)
 
 
+def _resize_to_cover(img: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """
+    Resizes + center-crops an image so it fully fills `size` without stretching.
+    """
+    target_w, target_h = size
+    src_w, src_h = img.size
+
+    if target_w <= 0 or target_h <= 0 or src_w <= 0 or src_h <= 0:
+        return img
+
+    scale = max(target_w / src_w, target_h / src_h)
+    resized_w = max(1, int(round(src_w * scale)))
+    resized_h = max(1, int(round(src_h * scale)))
+
+    img = img.resize((resized_w, resized_h), Image.BILINEAR)
+
+    left = max(0, (resized_w - target_w) // 2)
+    top = max(0, (resized_h - target_h) // 2)
+    right = left + target_w
+    bottom = top + target_h
+    return img.crop((left, top, right, bottom))
+
+
 def _evict_oldest(max_files: int) -> None:
     try:
         files = [
@@ -106,7 +129,7 @@ def load_image_from_url(url, size=(150, 200), radius=10, cache_context: str = "m
         data = _fetch_bytes(url, cache_context=cache_context)
         fetch_size = (size[0] * 2, size[1] * 2)
         img = Image.open(BytesIO(data)).convert("RGBA")
-        img = img.resize(fetch_size, Image.BILINEAR)
+        img = _resize_to_cover(img, fetch_size)
         img = round_image(img, radius * 2)
         img.load()
         return customtkinter.CTkImage(img, size=size)
@@ -147,7 +170,7 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict, cache_cont
         data = _fetch_bytes(url, cache_context=cache_context)
         fetch_size = (size[0] * 2, size[1] * 2)
         img_pil = Image.open(BytesIO(data)).convert("RGBA")
-        img_pil = img_pil.resize(fetch_size, Image.BILINEAR)
+        img_pil = _resize_to_cover(img_pil, fetch_size)
         img_pil = round_image(img_pil, 20)
     except Exception:
         return
