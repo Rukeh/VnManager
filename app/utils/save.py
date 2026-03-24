@@ -14,6 +14,7 @@ _DEFAULT_DATA = {
         "low_perf_mode": False,
         "cover_cache_max": 500,
         "cache_main_only": False,
+        "theme_name": "pink",
     },
 }
 
