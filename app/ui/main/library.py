@@ -179,7 +179,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
 
             # Notes section
             notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8, height=32)
-            notes_bar.pack(fill="x", padx=12, pady=(0, 10))
+            notes_bar.pack(side="bottom", fill="x", padx=12, pady=(0, 10))
             notes_bar.pack_propagate(False)
 
             note_text = vn.get("notes", "").strip()
