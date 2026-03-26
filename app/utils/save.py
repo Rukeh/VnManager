@@ -31,6 +31,10 @@ def _get_save_dir() -> str:
 _SAVE_FILE = os.path.join(_get_save_dir(), "save.json")
 
 
+def default_data() -> dict:
+    return copy.deepcopy(_DEFAULT_DATA)
+
+
 def load_data() -> dict:
     """
     Loads save data from the platform save path, returning defaults if the file is missing.
@@ -39,7 +43,7 @@ def load_data() -> dict:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        return copy.deepcopy(_DEFAULT_DATA)
+        return default_data()
 
 
 def _show_save_error(message: str) -> None:
@@ -70,3 +74,9 @@ def save_data(data: dict) -> None:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except OSError as e:
         _show_save_error(str(e))
+
+
+def reset_data() -> dict:
+    data = default_data()
+    save_data(data)
+    return data

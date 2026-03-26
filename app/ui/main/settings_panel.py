@@ -5,7 +5,7 @@ from app.ui.shared.theme import *
 from app.ui.shared.theme import list_themes, get_active_theme_name
 from app.ui.shared.components import set_low_perf_mode
 from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CACHE_DIR
-from app.utils.save import save_data
+from app.utils.save import save_data, reset_data
 
 
 def build_settings(parent, data: dict) -> None:
@@ -313,3 +313,94 @@ def build_settings(parent, data: dict) -> None:
     slider_label.configure(text=f"{int(cache_slider.get())} images")
     set_cover_cache_max(int(cache_slider.get()))
     _apply_cache_scope_ui()
+
+    # ── Danger zone ──────── (SAVE FILE RESET IS HERE) ─────────────────────────────────────────
+    customtkinter.CTkLabel(
+        scroll, text="DANGER ZONE",
+        font=("Nunito", 10, "bold"), text_color=TEXT_MUTED, anchor="w",
+    ).pack(anchor="w", padx=4, pady=(12, 4))
+
+    danger_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+    danger_card.pack(fill="x", pady=(0, 8))
+
+    danger_row = customtkinter.CTkFrame(danger_card, fg_color="transparent")
+    danger_row.pack(fill="x", padx=16, pady=14)
+
+    danger_text_col = customtkinter.CTkFrame(danger_row, fg_color="transparent")
+    danger_text_col.pack(side="left", fill="x", expand=True)
+    customtkinter.CTkLabel(
+        danger_text_col,
+        text="Reset savefile",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(anchor="w")
+    customtkinter.CTkLabel(
+        danger_text_col,
+        text="Deletes all categories, VN entries, notes, and settings.\nThis cannot be undone.",
+        font=FONT_SMALL, text_color=TEXT_DANGER, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 0))
+
+    def _open_reset_popup() -> None:
+        popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
+        popup.title("Reset savefile")
+        popup.geometry("430x190")
+        popup.configure(fg_color=SIDEBAR_BG)
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text="WARNING: This will permanently reset your entire savefile.",
+            font=FONT_TITLE,
+            text_color=TEXT_DANGER,
+            wraplength=390,
+            justify="center",
+        ).pack(pady=(16, 8))
+
+        customtkinter.CTkLabel(
+            popup,
+            text="All categories, VN entries, notes, and settings will be deleted.\nThe app will restart immediately after reset.",
+            font=FONT_SMALL,
+            text_color=TEXT,
+            wraplength=390,
+            justify="center",
+        ).pack(pady=(0, 12))
+
+        btn_frame = customtkinter.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack()
+
+        def _confirm_reset() -> None:
+            new_data = reset_data()
+            data.clear()
+            data.update(new_data)
+            popup.destroy()
+            os.execl(sys.executable, sys.executable, *sys.argv)
+
+        customtkinter.CTkButton(
+            btn_frame,
+            text="Cancel",
+            width=110,
+            text_color=WHITE,
+            fg_color=PINK_MID,
+            hover_color=PINK_HOVER_SOFT,
+            command=popup.destroy,
+        ).pack(side="left", padx=8)
+        customtkinter.CTkButton(
+            btn_frame,
+            text="Yes, reset everything",
+            width=170,
+            text_color=WHITE,
+            fg_color=PINK_DANGER,
+            hover_color=PINK_DANGER_HOVER,
+            command=_confirm_reset,
+        ).pack(side="left", padx=8)
+
+    customtkinter.CTkButton(
+        danger_row,
+        text="Reset savefile",
+        width=150, height=30,
+        fg_color=PINK_DANGER, hover_color=PINK_DANGER_HOVER,
+        text_color=WHITE, font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_open_reset_popup,
+    ).pack(side="right", padx=(16, 0))
