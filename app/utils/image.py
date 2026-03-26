@@ -199,11 +199,11 @@ def cover_size_for_width(window_width: int, context: str = "card") -> tuple[int,
     """
     if context == "card":
         if window_width < 900:
-            return (110, 147)
+            return (150, 200)
         elif window_width < 1400:
-            return (135, 180)
+            return (180, 240)
         else:
-            return (165, 220)
+            return (220, 293)
     elif context == "list":
         if window_width < 800:
             return (120, 145)
