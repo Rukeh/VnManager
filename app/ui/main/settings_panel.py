@@ -58,21 +58,26 @@ def build_settings(parent, data: dict) -> None:
         current_theme = available_themes[0]
     settings["theme_name"] = current_theme
 
-    def _switch_theme() -> None:
-        current = settings.get("theme_name", available_themes[0])
-        idx = available_themes.index(current) if current in available_themes else 0
-        next_theme = available_themes[(idx + 1) % len(available_themes)]
+    def _switch_theme(next_theme: str) -> None:
+        if next_theme == settings.get("theme_name"):
+            return
         settings["theme_name"] = next_theme
         save_data(data)
         os.execl(sys.executable, sys.executable, *sys.argv)
 
-    customtkinter.CTkButton(
+    theme_var = customtkinter.StringVar(value=settings["theme_name"])
+    customtkinter.CTkOptionMenu(
         theme_row,
-        text=f"{settings['theme_name'].capitalize()}  ↻",
+        variable=theme_var,
+        values=available_themes,
         width=170,
         height=30,
         fg_color=PINK_LIGHT,
-        hover_color=PINK_MID,
+        button_color=PINK_MID,
+        button_hover_color=PINK,
+        dropdown_fg_color=CARD_BG,
+        dropdown_hover_color=PINK_LIGHT,
+        dropdown_text_color=TEXT,
         text_color=PINK_DARK,
         font=("Nunito", 12, "bold"),
         corner_radius=20,
