@@ -275,27 +275,55 @@ def build_settings(parent, data: dict) -> None:
     cache_slider.pack(fill="x", pady=(0, 4))
 
     # Current cache size on disk
-    def _get_cache_count() -> int:
-        try:
-            return len(os.listdir(_COVER_CACHE_DIR))
-        except OSError:
-            return 0
+    def _format_size(num_bytes: int) -> str:
+        units = ["B", "KB", "MB", "GB"]
+        size = float(max(0, num_bytes))
+        for unit in units:
+            if size < 1024 or unit == units[-1]:
+                if unit == "B":
+                    return f"{int(size)} {unit}"
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return "0 B"
 
-    count = _get_cache_count()
+    def _get_cache_stats() -> tuple[int, int]:
+        try:
+            count = 0
+            total_bytes = 0
+            for entry in os.scandir(_COVER_CACHE_DIR):
+                if entry.is_file(follow_symlinks=False):
+                    count += 1
+                    try:
+                        total_bytes += entry.stat().st_size
+                    except OSError:
+                        continue
+            return count, total_bytes
+        except OSError:
+            return 0, 0
+
+    count, total_size = _get_cache_stats()
     cache_info_label = customtkinter.CTkLabel(
         cache_text_col,
-        text=f"Currently {count} covers cached on disk.",
+        text=f"Currently {count} covers cached on disk ({_format_size(total_size)}).",
         font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w",
     )
     cache_info_label.pack(anchor="w", pady=(0, 4))
 
+    def _refresh_cache_info() -> None:
+        current_count, current_total_size = _get_cache_stats()
+        cache_info_label.configure(
+            text=f"Currently {current_count} covers cached on disk ({_format_size(current_total_size)})."
+        )
+
     def _clear_cache() -> None:
         try:
             for f in os.listdir(_COVER_CACHE_DIR):
-                os.remove(os.path.join(_COVER_CACHE_DIR, f))
+                file_path = os.path.join(_COVER_CACHE_DIR, f)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
         except OSError:
             pass
-        cache_info_label.configure(text="Currently 0 covers cached on disk.")
+        _refresh_cache_info()
 
     customtkinter.CTkButton(
         cache_text_col,
