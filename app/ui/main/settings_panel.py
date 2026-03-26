@@ -58,12 +58,66 @@ def build_settings(parent, data: dict) -> None:
         current_theme = available_themes[0]
     settings["theme_name"] = current_theme
 
+    theme_confirm_popup = [None]
+
     def _switch_theme(next_theme: str) -> None:
-        if next_theme == settings.get("theme_name"):
+        current_theme = settings.get("theme_name", available_themes[0])
+        if next_theme == current_theme:
             return
-        settings["theme_name"] = next_theme
-        save_data(data)
-        os.execl(sys.executable, sys.executable, *sys.argv)
+
+        if theme_confirm_popup[0] is not None and theme_confirm_popup[0].winfo_exists():
+            theme_confirm_popup[0].destroy()
+
+        popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
+        theme_confirm_popup[0] = popup
+        popup.title("Confirm theme change")
+        popup.geometry("360x130")
+        popup.configure(fg_color=SIDEBAR_BG)
+        popup.resizable(False, False)
+        popup.after(50, lambda: popup.lift())
+        popup.after(50, lambda: popup.focus_force())
+
+        customtkinter.CTkLabel(
+            popup,
+            text=f'Apply "{next_theme.capitalize()}" theme?\nThe app will restart to apply this change.',
+            font=FONT_TITLE,
+            text_color=TEXT,
+            wraplength=320,
+            justify="center",
+        ).pack(pady=(16, 10))
+
+        btn_frame = customtkinter.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack()
+
+        def _cancel() -> None:
+            theme_var.set(current_theme)
+            popup.destroy()
+
+        def _confirm() -> None:
+            settings["theme_name"] = next_theme
+            save_data(data)
+            popup.destroy()
+            os.execl(sys.executable, sys.executable, *sys.argv)
+
+        popup.protocol("WM_DELETE_WINDOW", _cancel)
+        customtkinter.CTkButton(
+            btn_frame,
+            text="Cancel",
+            width=95,
+            text_color=WHITE,
+            fg_color=PINK_MID,
+            hover_color=PINK_HOVER_SOFT,
+            command=_cancel,
+        ).pack(side="left", padx=8)
+        customtkinter.CTkButton(
+            btn_frame,
+            text="Apply",
+            width=95,
+            text_color=WHITE,
+            fg_color=PINK,
+            hover_color=PINK_DARK,
+            command=_confirm,
+        ).pack(side="left", padx=8)
 
     theme_var = customtkinter.StringVar(value=settings["theme_name"])
     customtkinter.CTkOptionMenu(
