@@ -213,9 +213,9 @@ def cover_size_for_width(window_width: int, context: str = "card") -> tuple[int,
             return (195, 236)
     elif context == "grid":
         if window_width < 700:
-            return (130, 158)
+            return (210, 255)
         else:
-            return (165, 200)
+            return (280, 340)
     elif context == "detail":
         if window_width < 500:
             return (120, 165)
