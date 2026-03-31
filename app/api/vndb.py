@@ -54,7 +54,7 @@ def search_vns(title: str = "", tag_groups: list = None, page: int = 1) -> tuple
             parts.append(["or"] + tag_filters)
 
     if not parts:
-        return []
+        return [], False
     elif len(parts) == 1:
         final_filter = parts[0]
     else:
