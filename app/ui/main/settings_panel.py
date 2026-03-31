@@ -1,6 +1,7 @@
 import os
 import sys
 import customtkinter
+import traceback
 from app.ui.shared.theme import *
 from app.ui.shared.theme import list_themes, get_active_theme_name
 from app.ui.shared.components import set_low_perf_mode
@@ -321,8 +322,33 @@ def build_settings(parent, data: dict) -> None:
                 file_path = os.path.join(_COVER_CACHE_DIR, f)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-        except OSError:
-            pass
+        except OSError as e:
+            traceback.print_exc()
+            error_popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
+            error_popup.title("Cache clear failed")
+            error_popup.geometry("360x120")
+            error_popup.configure(fg_color=SIDEBAR_BG)
+            error_popup.resizable(False, False)
+            error_popup.after(50, lambda: error_popup.lift())
+            error_popup.after(50, lambda: error_popup.focus_force())
+
+            customtkinter.CTkLabel(
+                error_popup,
+                text=f"Failed to clear cache:\n{e}",
+                font=FONT_SMALL,
+                text_color=TEXT_ERROR,
+                wraplength=320,
+                justify="center",
+            ).pack(pady=(16, 10))
+            customtkinter.CTkButton(
+                error_popup,
+                text="OK",
+                width=90,
+                fg_color=PINK,
+                hover_color=PINK_DARK,
+                text_color=WHITE,
+                command=error_popup.destroy,
+            ).pack()
         _refresh_cache_info()
 
     customtkinter.CTkButton(
