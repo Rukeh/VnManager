@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import copy
+import threading
 
 import customtkinter
 
@@ -29,6 +30,7 @@ def _get_save_dir() -> str:
 
 
 _SAVE_FILE = os.path.join(_get_save_dir(), "save.json")
+_SAVE_LOCK = threading.Lock()
 
 
 def default_data() -> dict:
@@ -43,6 +45,9 @@ def load_data() -> dict:
         with open(_SAVE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
+        return default_data()
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[VnManager] Failed to load save data, using defaults: {e}", file=sys.stderr)
         return default_data()
 
 
@@ -70,9 +75,12 @@ def save_data(data: dict) -> None:
     """
     try:
         os.makedirs(os.path.dirname(_SAVE_FILE), exist_ok=True)
-        with open(_SAVE_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except OSError as e:
+        with _SAVE_LOCK:
+            tmp_path = f"{_SAVE_FILE}.tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            os.replace(tmp_path, _SAVE_FILE)
+    except (OSError, TypeError, ValueError) as e:
         _show_save_error(str(e))
 
 
