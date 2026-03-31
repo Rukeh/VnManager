@@ -3,6 +3,7 @@ import customtkinter
 from concurrent.futures import ThreadPoolExecutor
 import traceback
 import time
+import sys
 
 from app.api.vndb import search_vns, search_tags
 from app.ui.search.vn_detail import open_vn_detail
@@ -193,8 +194,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if _tag_dropdown_win[0]:
             try:
                 _tag_dropdown_win[0].destroy()
-            except Exception:
-                pass
+            except tkinter.TclError as e:
+                print(f"[VnManager] Failed to close tag dropdown: {e}", file=sys.stderr)
         _tag_dropdown_win[0] = None
         _tag_listbox[0] = None
         _suggest_results[0] = None
@@ -269,14 +270,14 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             try:
                 if focused == _active_entry[0]:
                     return
-            except Exception:
-                pass
+            except tkinter.TclError as e:
+                print(f"[VnManager] Focus check failed for active entry: {e}", file=sys.stderr)
         if _tag_listbox[0]:
             try:
                 if focused == _tag_listbox[0]:
                     return
-            except Exception:
-                pass
+            except tkinter.TclError as e:
+                print(f"[VnManager] Focus check failed for tag listbox: {e}", file=sys.stderr)
         _close_dropdown()
 
     def _fetch_tag_suggestions(query: str, anchor_entry, g_idx: int) -> None:
@@ -284,6 +285,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             try:
                 results = search_tags(query)
             except Exception:
+                traceback.print_exc()
                 return
             if _active_group_idx[0] == g_idx:
                 window.after(0, lambda: _show_dropdown(results, anchor_entry))
@@ -437,8 +439,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     def _scroll_results_to_top() -> None:
         try:
             results_frame._parent_canvas.yview_moveto(0)
-        except Exception:
-            pass
+        except (tkinter.TclError, AttributeError) as e:
+            print(f"[VnManager] Failed to scroll results to top: {e}", file=sys.stderr)
 
     load_more_row = customtkinter.CTkFrame(window, fg_color="transparent")
     load_more_row.pack(fill="x", padx=12, pady=(0, 10))
