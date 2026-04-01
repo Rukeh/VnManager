@@ -16,6 +16,8 @@ _DEFAULT_DATA = {
         "cover_cache_max": 500,
         "cache_main_only": False,
         "theme_name": "pink",
+        "font_scale": 1.0,
+        "high_contrast_mode": False,
     },
 }
 

@@ -3,7 +3,12 @@ import sys
 import customtkinter
 import traceback
 from app.ui.shared.theme import *
-from app.ui.shared.theme import list_themes, get_active_theme_name
+from app.ui.shared.theme import (
+    list_themes,
+    get_active_theme_name,
+    MIN_FONT_SCALE,
+    MAX_FONT_SCALE,
+)
 from app.ui.shared.components import set_low_perf_mode
 from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CACHE_DIR
 from app.utils.save import save_data, reset_data
@@ -17,6 +22,8 @@ def build_settings(parent, data: dict) -> None:
         data:   The full application state dict (used to persist settings).
     """
     settings = data.setdefault("settings", {})
+    settings.setdefault("font_scale", 1.0)
+    settings.setdefault("high_contrast_mode", False)
 
     header = customtkinter.CTkFrame(parent, fg_color=BG, corner_radius=0, height=52)
     header.pack(fill="x", padx=20, pady=(14, 0))
@@ -59,20 +66,21 @@ def build_settings(parent, data: dict) -> None:
         current_theme = available_themes[0]
     settings["theme_name"] = current_theme
 
-    theme_confirm_popup = [None]
+    restart_confirm_popup = [None]
 
-    def _switch_theme(next_theme: str) -> None:
-        current_theme = settings.get("theme_name", available_themes[0])
-        if next_theme == current_theme:
-            return
-
-        if theme_confirm_popup[0] is not None and theme_confirm_popup[0].winfo_exists():
-            theme_confirm_popup[0].destroy()
+    def _open_restart_confirm_popup(
+        title: str,
+        message: str,
+        on_confirm,
+        on_cancel,
+    ) -> None:
+        if restart_confirm_popup[0] is not None and restart_confirm_popup[0].winfo_exists():
+            restart_confirm_popup[0].destroy()
 
         popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
-        theme_confirm_popup[0] = popup
-        popup.title("Confirm theme change")
-        popup.geometry("360x130")
+        restart_confirm_popup[0] = popup
+        popup.title(title)
+        popup.geometry("390x140")
         popup.configure(fg_color=SIDEBAR_BG)
         popup.resizable(False, False)
         popup.after(50, lambda: popup.lift())
@@ -80,27 +88,26 @@ def build_settings(parent, data: dict) -> None:
 
         customtkinter.CTkLabel(
             popup,
-            text=f'Apply "{next_theme.capitalize()}" theme?\nThe app will restart to apply this change.',
+            text=message,
             font=FONT_TITLE,
             text_color=TEXT,
-            wraplength=320,
+            wraplength=350,
             justify="center",
         ).pack(pady=(16, 10))
 
         btn_frame = customtkinter.CTkFrame(popup, fg_color="transparent")
         btn_frame.pack()
 
-        def _cancel() -> None:
-            theme_var.set(current_theme)
+        def _cancel_inner() -> None:
+            on_cancel()
             popup.destroy()
 
-        def _confirm() -> None:
-            settings["theme_name"] = next_theme
-            save_data(data)
+        def _confirm_inner() -> None:
+            on_confirm()
             popup.destroy()
             os.execl(sys.executable, sys.executable, *sys.argv)
 
-        popup.protocol("WM_DELETE_WINDOW", _cancel)
+        popup.protocol("WM_DELETE_WINDOW", _cancel_inner)
         customtkinter.CTkButton(
             btn_frame,
             text="Cancel",
@@ -108,7 +115,7 @@ def build_settings(parent, data: dict) -> None:
             text_color=WHITE,
             fg_color=PINK_MID,
             hover_color=PINK_HOVER_SOFT,
-            command=_cancel,
+            command=_cancel_inner,
         ).pack(side="left", padx=8)
         customtkinter.CTkButton(
             btn_frame,
@@ -117,8 +124,27 @@ def build_settings(parent, data: dict) -> None:
             text_color=WHITE,
             fg_color=PINK,
             hover_color=PINK_DARK,
-            command=_confirm,
+            command=_confirm_inner,
         ).pack(side="left", padx=8)
+
+    def _switch_theme(next_theme: str) -> None:
+        previous_theme = settings.get("theme_name", available_themes[0])
+        if next_theme == previous_theme:
+            return
+
+        def _cancel() -> None:
+            theme_var.set(previous_theme)
+
+        def _confirm() -> None:
+            settings["theme_name"] = next_theme
+            save_data(data)
+
+        _open_restart_confirm_popup(
+            "Confirm theme change",
+            f'Apply "{next_theme.capitalize()}" theme?\nThe app will restart to apply this change.',
+            _confirm,
+            _cancel,
+        )
 
     theme_var = customtkinter.StringVar(value=settings["theme_name"])
     customtkinter.CTkOptionMenu(
@@ -173,6 +199,133 @@ def build_settings(parent, data: dict) -> None:
         button_color=PINK_DARK,
         button_hover_color=PINK_DARK,
         command=lambda: _toggle(switch_var.get()),
+    ).pack(side="right", padx=(16, 0))
+
+    # ── Accessibility ──────────────────────────────────────────────────────────
+    customtkinter.CTkLabel(
+        scroll, text="ACCESSIBILITY",
+        font=("Nunito", 10, "bold"), text_color=TEXT_MUTED, anchor="w",
+    ).pack(anchor="w", padx=4, pady=(12, 4))
+
+    accessibility_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+    accessibility_card.pack(fill="x", pady=(0, 8))
+
+    accessibility_inner = customtkinter.CTkFrame(accessibility_card, fg_color="transparent")
+    accessibility_inner.pack(fill="x", padx=16, pady=14)
+
+    scale_row = customtkinter.CTkFrame(accessibility_inner, fg_color="transparent")
+    scale_row.pack(fill="x", pady=(0, 10))
+
+    scale_text_col = customtkinter.CTkFrame(scale_row, fg_color="transparent")
+    scale_text_col.pack(side="left", fill="x", expand=True)
+    customtkinter.CTkLabel(
+        scale_text_col, text="Font scaling",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(anchor="w")
+    customtkinter.CTkLabel(
+        scale_text_col,
+        text="Increase or decrease global font size for readability.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 0))
+
+    font_scale_options = [
+        round(step / 10.0, 1)
+        for step in range(int(MIN_FONT_SCALE * 10), int(MAX_FONT_SCALE * 10) + 1)
+    ]
+    font_scale_to_label = {value: f"{int(value * 100)}%" for value in font_scale_options}
+    label_to_font_scale = {label: value for value, label in font_scale_to_label.items()}
+
+    current_font_scale = round(float(settings.get("font_scale", 1.0)), 1)
+    if current_font_scale not in font_scale_options:
+        current_font_scale = 1.0
+    settings["font_scale"] = current_font_scale
+
+    font_scale_var = customtkinter.StringVar(value=font_scale_to_label[current_font_scale])
+
+    def _switch_font_scale(next_label: str) -> None:
+        next_scale = label_to_font_scale[next_label]
+        previous_scale = round(float(settings.get("font_scale", 1.0)), 1)
+        if next_scale == previous_scale:
+            return
+
+        def _cancel() -> None:
+            font_scale_var.set(font_scale_to_label[previous_scale])
+
+        def _confirm() -> None:
+            settings["font_scale"] = next_scale
+            save_data(data)
+
+        _open_restart_confirm_popup(
+            "Confirm font scaling",
+            f"Apply {int(next_scale * 100)}% font scaling?\nThe app will restart to apply this change.",
+            _confirm,
+            _cancel,
+        )
+
+    customtkinter.CTkOptionMenu(
+        scale_row,
+        variable=font_scale_var,
+        values=[font_scale_to_label[value] for value in font_scale_options],
+        width=140,
+        height=30,
+        fg_color=PINK_LIGHT,
+        button_color=PINK_MID,
+        button_hover_color=PINK,
+        dropdown_fg_color=CARD_BG,
+        dropdown_hover_color=PINK_LIGHT,
+        dropdown_text_color=TEXT,
+        text_color=PINK_DARK,
+        font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_switch_font_scale,
+    ).pack(side="right")
+
+    contrast_row = customtkinter.CTkFrame(accessibility_inner, fg_color="transparent")
+    contrast_row.pack(fill="x")
+
+    contrast_text_col = customtkinter.CTkFrame(contrast_row, fg_color="transparent")
+    contrast_text_col.pack(side="left", fill="x", expand=True)
+    customtkinter.CTkLabel(
+        contrast_text_col, text="High contrast mode",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(anchor="w")
+    customtkinter.CTkLabel(
+        contrast_text_col,
+        text="Boost text and border contrast for improved readability.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 0))
+
+    high_contrast_var = customtkinter.IntVar(value=1 if settings.get("high_contrast_mode", False) else 0)
+
+    def _toggle_high_contrast() -> None:
+        next_enabled = high_contrast_var.get() == 1
+        previous_enabled = bool(settings.get("high_contrast_mode", False))
+        if next_enabled == previous_enabled:
+            return
+
+        def _cancel() -> None:
+            high_contrast_var.set(1 if previous_enabled else 0)
+
+        def _confirm() -> None:
+            settings["high_contrast_mode"] = next_enabled
+            save_data(data)
+
+        _open_restart_confirm_popup(
+            "Confirm high contrast",
+            f'{"Enable" if next_enabled else "Disable"} high contrast mode?\nThe app will restart to apply this change.',
+            _confirm,
+            _cancel,
+        )
+
+    customtkinter.CTkSwitch(
+        contrast_row,
+        text="",
+        variable=high_contrast_var,
+        onvalue=1, offvalue=0,
+        progress_color=PINK,
+        button_color=PINK_DARK,
+        button_hover_color=PINK_DARK,
+        command=_toggle_high_contrast,
     ).pack(side="right", padx=(16, 0))
 
     # ── Cover cache ───────────────────────────────────────────────────────────
