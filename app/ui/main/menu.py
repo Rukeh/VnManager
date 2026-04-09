@@ -2,13 +2,14 @@ import customtkinter
 from app.ui.shared.theme import *
 
 
-def build_menu(parent, on_library, on_settings) -> None:
+def build_menu(parent, on_library, on_settings, on_news) -> None:
     """
     Renders the welcome menu screen into parent.
     Args:
         parent:      The CTkFrame to render into (menu_frame from main_window).
         on_library:  Callback to navigate to the library view.
         on_settings: Callback to navigate to the settings view.
+        on_news:     Callback to navigate to the news view.
     """
     center = customtkinter.CTkFrame(parent, fg_color="transparent")
     center.place(relx=0.5, rely=0.5, anchor="center")
@@ -38,7 +39,7 @@ def build_menu(parent, on_library, on_settings) -> None:
 
         customtkinter.CTkLabel(card, text=emoji, font=("Nunito", 48)).pack(pady=(40, 6))
         customtkinter.CTkLabel(card, text=title, font=FONT_H2, text_color=TEXT).pack()
-        customtkinter.CTkLabel(card, text=subtitle, font=FONT_SMALL, text_color=TEXT_MUTED).pack(pady=(4, 0))
+        customtkinter.CTkLabel(card, text=subtitle, font=FONT_SMALL, text_color=TEXT_MUTED, wraplength=180).pack(pady=(4, 0))
 
         def _on_enter(_e):
             card.configure(border_color=PINK, fg_color=PINK_SOFT)
@@ -50,5 +51,6 @@ def build_menu(parent, on_library, on_settings) -> None:
             widget.bind("<Enter>", _on_enter)
             widget.bind("<Leave>", _on_leave)
 
-    _make_card(cards_row, "X", "My Library", "Browse & manage your VNs", on_library)
-    _make_card(cards_row, "X", "Settings", "Performance & preferences", on_settings)
+    _make_card(cards_row, "📚", "My Library", "Browse & manage your VNs", on_library)
+    _make_card(cards_row, "📰", "News", "See updates and announcements", on_news)
+    _make_card(cards_row, "⚙️", "Settings", "Performance & preferences", on_settings)
