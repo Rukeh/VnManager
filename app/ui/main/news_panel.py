@@ -1,6 +1,7 @@
 import customtkinter
 
 from app.ui.shared.theme import *
+from api.vndb import search_news
 
 
 def build_news(parent) -> None:
