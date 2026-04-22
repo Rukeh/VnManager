@@ -8,7 +8,6 @@ from app.ui.shared.components import enable_touchpad_scroll, set_low_perf_mode
 from app.ui.main.menu import build_menu
 from app.ui.main.categories import build_categories
 from app.ui.main.library import build_library
-from app.ui.main.news_panel import build_news
 from app.ui.main.settings_panel import build_settings
 from app.ui.search.search_window import open_search_window
 from app.utils.image import set_cache_main_only, set_cover_cache_max
@@ -113,7 +112,6 @@ def run() -> None:
         menu_frame,
         on_library=lambda: show_library(),
         on_settings=lambda: show_settings(),
-        on_news=lambda: show_news(),
     )
 
     # ── Library frame ─────────────────────────────────────────────────────────
@@ -222,15 +220,10 @@ def run() -> None:
     settings_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
     build_settings(settings_frame, data)
 
-    # ── News frame ────────────────────────────────────────────────────────────
-    news_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
-    build_news(news_frame)
-
     # ── Navigation ────────────────────────────────────────────────────────────
     def show_menu() -> None:
         library_frame.pack_forget()
         settings_frame.pack_forget()
-        news_frame.pack_forget()
         menu_frame.pack(fill="both", expand=True)
         back_btn.pack_forget()
         search_vn_btn.pack_forget()
@@ -238,7 +231,6 @@ def run() -> None:
     def show_library() -> None:
         menu_frame.pack_forget()
         settings_frame.pack_forget()
-        news_frame.pack_forget()
         library_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack(side="right", padx=(0, 16), pady=10)
@@ -246,16 +238,7 @@ def run() -> None:
     def show_settings() -> None:
         menu_frame.pack_forget()
         library_frame.pack_forget()
-        news_frame.pack_forget()
         settings_frame.pack(fill="both", expand=True)
-        back_btn.pack(side="left", padx=(8, 0), pady=10)
-        search_vn_btn.pack_forget()
-
-    def show_news() -> None:
-        menu_frame.pack_forget()
-        library_frame.pack_forget()
-        settings_frame.pack_forget()
-        news_frame.pack(fill="both", expand=True)
         back_btn.pack(side="left", padx=(8, 0), pady=10)
         search_vn_btn.pack_forget()
 

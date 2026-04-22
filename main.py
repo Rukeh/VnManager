@@ -21,4 +21,4 @@ if __name__ == "__main__":
     set_high_contrast_mode(high_contrast_mode)
     from app.ui.main.main_window import run
     run()
-#do not touch
+#do not touch unless data changes are made to the save file structure, in which case this should be updated to migrate old save data to the new format

@@ -87,29 +87,3 @@ def search_tags(query: str) -> list:
         "sort": "searchrank",
     }
     return _post_with_retry(url, payload)["results"]
-
-
-def search_news(query: str = "", page: int = 1) -> tuple[list, bool]:
-    """
-    Searches VNDB releases for upcoming VN launches.
-    Returns (results, has_more) from the release endpoint.
-    Args:
-        query: Optional search query to narrow upcoming releases.
-        page:  1-based page index.
-    """
-    url = "https://api.vndb.org/kana/release"
-    today = time.strftime("%Y-%m-%d")
-
-    filters = ["released", ">=", today]
-    if query:
-        filters = ["and", filters, ["search", "=", query]]
-
-    payload = {
-        "filters": filters,
-        "fields": "id, title, released, vns.id, vns.title, platforms, patch",
-        "results": 20,
-        "sort": "released",
-        "page": max(1, int(page)),
-    }
-    response_data = _post_with_retry(url, payload)
-    return response_data.get("results", []), bool(response_data.get("more", False))
