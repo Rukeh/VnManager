@@ -1,5 +1,33 @@
+import os
+
 import customtkinter
+from PIL import Image
 from app.ui.shared.theme import *
+
+
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+
+def _resolve_icon_path(icon: str) -> str | None:
+    candidates = (
+        icon,
+        os.path.join(os.path.dirname(__file__), icon),
+        os.path.join(_PROJECT_ROOT, icon),
+    )
+    for files in candidates:
+        absolute = os.path.abspath(files)
+        if os.path.isfile(absolute):
+            return absolute
+    return None
+
+
+def _looks_like_image_path(value: str) -> bool:
+    lower = value.lower()
+    return (
+        "/" in value
+        or "\\" in value
+        or lower.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".ico"))
+    )
 
 
 def build_menu(parent, on_library, on_settings) -> None:
@@ -26,7 +54,7 @@ def build_menu(parent, on_library, on_settings) -> None:
     cards_row = customtkinter.CTkFrame(center, fg_color="transparent")
     cards_row.pack()
 
-    def _make_card(parent_frame, emoji, title, subtitle, callback):
+    def _make_card(parent_frame, icon, title, subtitle, callback):
         card = customtkinter.CTkFrame(
             parent_frame, fg_color=CARD_BG,
             border_width=1, border_color=BORDER,
@@ -36,7 +64,23 @@ def build_menu(parent, on_library, on_settings) -> None:
         card.pack(side="left", padx=16)
         card.pack_propagate(False)
 
-        customtkinter.CTkLabel(card, text=emoji, font=("Nunito", 48)).pack(pady=(40, 6))
+        icon_label = None
+        if isinstance(icon, str):
+            icon_path = _resolve_icon_path(icon)
+            if icon_path is not None:
+                try:
+                    with Image.open(icon_path) as icon_source:
+                        icon_pil = icon_source.copy()
+                    card._icon_image = customtkinter.CTkImage(icon_pil, size=(85, 85))
+                    icon_label = customtkinter.CTkLabel(card, text="", image=card._icon_image)
+                except (FileNotFoundError, OSError):
+                    icon_label = None
+
+        if icon_label is None:
+            fallback_icon = "X" if isinstance(icon, str) and _looks_like_image_path(icon) else icon
+            icon_label = customtkinter.CTkLabel(card, text=str(fallback_icon), font=("Nunito", 48))
+
+        icon_label.pack(pady=(40, 6))
         customtkinter.CTkLabel(card, text=title, font=FONT_H2, text_color=TEXT).pack()
         customtkinter.CTkLabel(card, text=subtitle, font=FONT_SMALL, text_color=TEXT_MUTED, wraplength=180).pack(pady=(4, 0))
 
@@ -50,5 +94,5 @@ def build_menu(parent, on_library, on_settings) -> None:
             widget.bind("<Enter>", _on_enter)
             widget.bind("<Leave>", _on_leave)
 
-    _make_card(cards_row, "X", "My Library", "Browse & manage your VNs", on_library)
-    _make_card(cards_row, "X", "Settings", "Performance & preferences", on_settings)
+    _make_card(cards_row, "assets/menu_icons/Library.png", "My Library", "Browse & manage your VNs", on_library)
+    _make_card(cards_row, "assets/menu_icons/Settings.png", "Settings", "Performance & preferences", on_settings)
