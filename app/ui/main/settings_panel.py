@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import customtkinter
 import traceback
 from app.ui.shared.theme import *
@@ -469,6 +470,33 @@ def build_settings(parent, data: dict) -> None:
             text=f"Currently {current_count} covers cached on disk ({_format_size(current_total_size)})."
         )
 
+    def _show_cache_error_popup(title: str, message: str) -> None:
+        error_popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
+        error_popup.title(title)
+        error_popup.geometry("360x120")
+        error_popup.configure(fg_color=SIDEBAR_BG)
+        error_popup.resizable(False, False)
+        error_popup.after(50, lambda: error_popup.lift())
+        error_popup.after(50, lambda: error_popup.focus_force())
+
+        customtkinter.CTkLabel(
+            error_popup,
+            text=message,
+            font=FONT_SMALL,
+            text_color=TEXT_ERROR,
+            wraplength=320,
+            justify="center",
+        ).pack(pady=(16, 10))
+        customtkinter.CTkButton(
+            error_popup,
+            text="OK",
+            width=90,
+            fg_color=PINK,
+            hover_color=PINK_DARK,
+            text_color=WHITE,
+            command=error_popup.destroy,
+        ).pack()
+
     def _clear_cache() -> None:
         try:
             for f in os.listdir(_COVER_CACHE_DIR):
@@ -477,42 +505,44 @@ def build_settings(parent, data: dict) -> None:
                     os.remove(file_path)
         except OSError as e:
             traceback.print_exc()
-            error_popup = customtkinter.CTkToplevel(parent.winfo_toplevel())
-            error_popup.title("Cache clear failed")
-            error_popup.geometry("360x120")
-            error_popup.configure(fg_color=SIDEBAR_BG)
-            error_popup.resizable(False, False)
-            error_popup.after(50, lambda: error_popup.lift())
-            error_popup.after(50, lambda: error_popup.focus_force())
-
-            customtkinter.CTkLabel(
-                error_popup,
-                text=f"Failed to clear cache:\n{e}",
-                font=FONT_SMALL,
-                text_color=TEXT_ERROR,
-                wraplength=320,
-                justify="center",
-            ).pack(pady=(16, 10))
-            customtkinter.CTkButton(
-                error_popup,
-                text="OK",
-                width=90,
-                fg_color=PINK,
-                hover_color=PINK_DARK,
-                text_color=WHITE,
-                command=error_popup.destroy,
-            ).pack()
+            _show_cache_error_popup("Cache clear failed", f"Failed to clear cache:\n{e}")
         _refresh_cache_info()
 
+    def _open_cache_folder() -> None:
+        try:
+            os.makedirs(_COVER_CACHE_DIR, exist_ok=True)
+            if sys.platform.startswith("win"):
+                os.startfile(_COVER_CACHE_DIR)  # type: ignore[attr-defined]
+            elif sys.platform == "darwin":
+                subprocess.run(["open", _COVER_CACHE_DIR], check=True)
+            else:
+                subprocess.run(["xdg-open", _COVER_CACHE_DIR], check=True)
+        except (OSError, subprocess.SubprocessError) as e:
+            traceback.print_exc()
+            _show_cache_error_popup("Open cache folder failed", f"Failed to open cache folder:\n{e}")
+
+    cache_actions_row = customtkinter.CTkFrame(cache_text_col, fg_color="transparent")
+    cache_actions_row.pack(anchor="w", pady=(4, 0))
+
     customtkinter.CTkButton(
-        cache_text_col,
+        cache_actions_row,
         text="Clear cache",
         width=120, height=28,
         fg_color=PINK_LIGHT, hover_color=PINK,
         text_color=PINK_DARK, font=("Nunito", 12, "bold"),
         corner_radius=20,
         command=_clear_cache,
-    ).pack(anchor="w", pady=(4, 0))
+    ).pack(side="left")
+
+    customtkinter.CTkButton(
+        cache_actions_row,
+        text="Open cache folder",
+        width=160, height=28,
+        fg_color=PINK_LIGHT, hover_color=PINK,
+        text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_open_cache_folder,
+    ).pack(side="left", padx=(8, 0))
 
     # Initialise slider to saved value
     saved_max = settings.get("cover_cache_max", 500)
