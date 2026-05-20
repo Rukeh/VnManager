@@ -443,7 +443,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             print(f"[VnManager] Failed to scroll results to top: {e}", file=sys.stderr)
 
     load_more_row = customtkinter.CTkFrame(window, fg_color="transparent")
-    load_more_row.pack(fill="x", padx=12, pady=(0, 10))
 
     load_more_btn = customtkinter.CTkButton(
         load_more_row,
@@ -817,11 +816,15 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         should_show = bool(last_results) and (_has_more_pages[0] or _is_loading_more[0])
         if not should_show:
             load_more_btn.pack_forget()
+            if load_more_row.winfo_manager():
+                load_more_row.pack_forget()
             return
         load_more_btn.configure(
             text="Loading..." if _is_loading_more[0] else "Load more",
             state="disabled" if _is_loading_more[0] else "normal",
         )
+        if not load_more_row.winfo_manager():
+            load_more_row.pack(fill="x", padx=12, pady=(0, 10))
         if not load_more_btn.winfo_manager():
             load_more_btn.pack(pady=(2, 8))
 
