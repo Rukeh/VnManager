@@ -512,7 +512,7 @@ def build_settings(parent, data: dict) -> None:
         try:
             os.makedirs(_COVER_CACHE_DIR, exist_ok=True)
             if sys.platform.startswith("win"):
-                os.startfile(_COVER_CACHE_DIR)  # type: ignore[attr-defined]
+                os.startfile(_COVER_CACHE_DIR)
             elif sys.platform == "darwin":
                 subprocess.run(["open", _COVER_CACHE_DIR], check=True)
             else:
