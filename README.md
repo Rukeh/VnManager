@@ -88,3 +88,7 @@ If something breaks or you have an idea, feel free to open an issue ♡
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE)
+
+## Dsclaimer
+
+Some backend components were made with the help of AI
