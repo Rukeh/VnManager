@@ -22,6 +22,15 @@ def build_library(vns_scroll, right_panel, app_state, app):
     selected_category = app_state.selected_category
     search_var = app_state.search_var
     sort_var = app_state.sort_var
+    _render_gen = [0]
+    _search_job = [None]
+    image_futures: list = []
+
+    def _cancel_image_tasks() -> None:
+        futures = list(image_futures)
+        image_futures.clear()
+        for future in futures:
+            future.cancel()
 
     def _card_wraplength() -> int:
         return max(120, (logical_width(right_panel) // 2) - 160)
@@ -44,6 +53,9 @@ def build_library(vns_scroll, right_panel, app_state, app):
         Filters results by the current search bar query if one is set.
         Does nothing if no category is selected.
         """
+        _render_gen[0] += 1
+        gen = _render_gen[0]
+        _cancel_image_tasks()
         for widget in vns_scroll.winfo_children():
             widget.destroy()
 
@@ -75,129 +87,146 @@ def build_library(vns_scroll, right_panel, app_state, app):
 
         cover_size = cover_size_for_width(right_panel.winfo_width(), "card")
 
-        for idx, vn in enumerate(vns):
-            row, col = divmod(idx, 2)
-            year = (vn.get("released") or "?")[:4]
-            img_url = (vn.get("image") or {}).get("url", "")
-            rating = vn.get("rating")
+        BATCH = 6
 
-            card = customtkinter.CTkFrame(vns_scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=16)
-            card.grid(row=row, column=col, padx=6, pady=6, sticky="nsew")
+        def _render_batch(start_index: int) -> None:
+            if gen != _render_gen[0]:
+                return
+            for idx in range(start_index, min(start_index + BATCH, len(vns))):
+                vn = vns[idx]
+                row, col = divmod(idx, 2)
+                year = (vn.get("released") or "?")[:4]
+                img_url = (vn.get("image") or {}).get("url", "")
+                rating = vn.get("rating")
 
-            top_row = customtkinter.CTkFrame(card, fg_color="transparent")
-            top_row.pack(fill="x", padx=12, pady=(12, 0))
+                card = customtkinter.CTkFrame(vns_scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=16)
+                card.grid(row=row, column=col, padx=6, pady=6, sticky="nsew")
 
-            cover_frame = customtkinter.CTkFrame(top_row, width=cover_size[0], height=cover_size[1], fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
-            cover_frame.pack(side="left", padx=(0, 10))
-            cover_frame.pack_propagate(False)
+                top_row = customtkinter.CTkFrame(card, fg_color="transparent")
+                top_row.pack(fill="x", padx=12, pady=(12, 0))
 
-            img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 24), cursor="hand2", fg_color="transparent")
-            img_label.place(relx=0.5, rely=0.5, anchor="center")
+                cover_frame = customtkinter.CTkFrame(top_row, width=cover_size[0], height=cover_size[1], fg_color=PINK_LIGHT, corner_radius=10, cursor="hand2")
+                cover_frame.pack(side="left", padx=(0, 10))
+                cover_frame.pack_propagate(False)
 
-            _images = {"normal": None, "dimmed": None}
+                img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 24), cursor="hand2", fg_color="transparent")
+                img_label.place(relx=0.5, rely=0.5, anchor="center")
 
-            if img_url:
-                submit_image_task(async_load_with_hover, img_label, img_url, cover_size, _images)
+                _images = {"normal": None, "dimmed": None}
 
-            def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color=COVER_HOVER_BG)
-                if imgs["dimmed"]:
-                    lbl.configure(image=imgs["dimmed"])
-            def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
-                cf.configure(fg_color=PINK_LIGHT)
-                if imgs["normal"]:
-                    lbl.configure(image=imgs["normal"])
+                if img_url:
+                    future = submit_image_task(async_load_with_hover, img_label, img_url, cover_size, _images)
+                    image_futures.append(future)
 
-            for widget in (cover_frame, img_label):
-                widget.bind("<Enter>", on_enter)
-                widget.bind("<Leave>", on_leave)
-                widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
+                def on_enter(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color=COVER_HOVER_BG)
+                    if imgs["dimmed"]:
+                        lbl.configure(image=imgs["dimmed"])
+                def on_leave(_e, lbl=img_label, imgs=_images, cf=cover_frame):
+                    cf.configure(fg_color=PINK_LIGHT)
+                    if imgs["normal"]:
+                        lbl.configure(image=imgs["normal"])
 
-            btn_col = customtkinter.CTkFrame(top_row, fg_color="transparent")
-            btn_col.pack(side="right", anchor="n", padx=(4, 0))
+                for widget in (cover_frame, img_label):
+                    widget.bind("<Enter>", on_enter)
+                    widget.bind("<Leave>", on_leave)
+                    widget.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
-            customtkinter.CTkButton(
-                btn_col, text="✕", width=26, height=26,
-                fg_color=PINK_LIGHT, hover_color=PINK,
-                text_color=PINK_DARK, font=("Nunito", 12, "bold"),
-                corner_radius=13,
-                command=lambda v=vn, c=cat: remove_vn(c, v),
-            ).pack(pady=(0, 4))
+                btn_col = customtkinter.CTkFrame(top_row, fg_color="transparent")
+                btn_col.pack(side="right", anchor="n", padx=(4, 0))
 
-            customtkinter.CTkButton(
-                btn_col, text="↪", width=26, height=26,
-                fg_color=PINK_LIGHT, hover_color=PINK,
-                text_color=PINK_DARK, font=("Nunito", 12, "bold"),
-                corner_radius=13,
-                command=lambda v=vn, c=cat: move_vn(c, v),
-            ).pack()
+                customtkinter.CTkButton(
+                    btn_col, text="✕", width=26, height=26,
+                    fg_color=PINK_LIGHT, hover_color=PINK,
+                    text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+                    corner_radius=13,
+                    command=lambda v=vn, c=cat: remove_vn(c, v),
+                ).pack(pady=(0, 4))
 
-            text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
-            text_frame.pack(side="left", fill="y", expand=False)
+                customtkinter.CTkButton(
+                    btn_col, text="↪", width=26, height=26,
+                    fg_color=PINK_LIGHT, hover_color=PINK,
+                    text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+                    corner_radius=13,
+                    command=lambda v=vn, c=cat: move_vn(c, v),
+                ).pack()
 
-            title_lbl = customtkinter.CTkLabel(
-                text_frame,
-                text=f"{vn['title']}",
-                font=FONT_H2,
-                text_color=TEXT,
-                anchor="w",
-                wraplength=_card_wraplength(),
-                cursor="hand2",
-            )
-            title_lbl.pack(fill="x")
-            title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
+                text_frame = customtkinter.CTkFrame(top_row, fg_color="transparent")
+                text_frame.pack(side="left", fill="y", expand=False)
 
-            def _update_wraplength(lbl=title_lbl):
-                w = logical_width(text_frame)
-                if w > 10:
-                    lbl.configure(wraplength=w - 8)
-                else:
-                    lbl.configure(wraplength=_card_wraplength())
+                title_lbl = customtkinter.CTkLabel(
+                    text_frame,
+                    text=f"{vn['title']}",
+                    font=FONT_H2,
+                    text_color=TEXT,
+                    anchor="w",
+                    wraplength=_card_wraplength(),
+                    cursor="hand2",
+                )
+                title_lbl.pack(fill="x")
+                title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(app, v))
 
-            title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: _update_wraplength(lbl))
+                def _update_wraplength(lbl=title_lbl):
+                    w = logical_width(text_frame)
+                    if w > 10:
+                        lbl.configure(wraplength=w - 8)
+                    else:
+                        lbl.configure(wraplength=_card_wraplength())
 
-            customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
+                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl: _update_wraplength(lbl))
 
-            if rating:
-                rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
-                rating_frame.pack(anchor='w', pady=(4, 0))
-                customtkinter.CTkLabel(rating_frame, text=f"★ {rating/10:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)
+                customtkinter.CTkLabel(text_frame, text=year, text_color=TEXT_MUTED, font=FONT_SMALL, anchor='w').pack(fill="x")
 
-            render_tags(text_frame, vn, max_tags=5)
+                if rating:
+                    rating_frame = customtkinter.CTkFrame(text_frame, fg_color=PINK_LIGHT, corner_radius=20)
+                    rating_frame.pack(anchor='w', pady=(4, 0))
+                    customtkinter.CTkLabel(rating_frame, text=f"★ {rating/10:.2f}", font=('Nunito', 11, "bold"), text_color=PINK_DARK).pack(padx=8, pady=2)
 
-            desc_lbl = customtkinter.CTkLabel(
-                card,
-                text=clean_description(vn.get("description"), 500),
-                font=FONT_SMALL,
-                text_color=TEXT_MUTED,
-                anchor="w",
-                wraplength=_card_wraplength(),
-                justify="left",
-            )
-            desc_lbl.pack(fill="x", padx=12, pady=(8, 4))
-            desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 32)))
+                render_tags(text_frame, vn, max_tags=5)
 
-            # Notes section
-            notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8, height=32)
-            notes_bar.pack(side="bottom", fill="x", padx=12, pady=(0, 10))
-            notes_bar.pack_propagate(False)
+                desc_lbl = customtkinter.CTkLabel(
+                    card,
+                    text=clean_description(vn.get("description"), 500),
+                    font=FONT_SMALL,
+                    text_color=TEXT_MUTED,
+                    anchor="w",
+                    wraplength=_card_wraplength(),
+                    justify="left",
+                )
+                desc_lbl.pack(fill="x", padx=12, pady=(8, 4))
+                desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 32)))
 
-            note_text = vn.get("notes", "").strip()
-            note_preview = (note_text[:60] + "…") if len(note_text) > 60 else note_text
-            notes_label = customtkinter.CTkLabel(
-                notes_bar,
-                text=f"📝  {note_preview}" if note_text else "📝  Add a note...",
-                font=FONT_SMALL,
-                text_color=TEXT if note_text else TEXT_MUTED,
-                anchor="w",
-                wraplength=0,
-                justify="left",
-                cursor="hand2",
-            )
-            notes_label.pack(side="left", fill="x", expand=True, padx=(8, 4), pady=6)
-            notes_label.bind("<Button-1>", lambda _e, v=vn, lbl=notes_label, c=cat: open_notes_popup(c, v, lbl))
+                # Notes section
+                notes_bar = customtkinter.CTkFrame(card, fg_color=PINK_SOFT, corner_radius=8, height=32)
+                notes_bar.pack(side="bottom", fill="x", padx=12, pady=(0, 10))
+                notes_bar.pack_propagate(False)
 
-    search_var.trace_add("write", lambda *_: refresh_right_panel())
+                note_text = vn.get("notes", "").strip()
+                note_preview = (note_text[:60] + "…") if len(note_text) > 60 else note_text
+                notes_label = customtkinter.CTkLabel(
+                    notes_bar,
+                    text=f"📝  {note_preview}" if note_text else "📝  Add a note...",
+                    font=FONT_SMALL,
+                    text_color=TEXT if note_text else TEXT_MUTED,
+                    anchor="w",
+                    wraplength=0,
+                    justify="left",
+                    cursor="hand2",
+                )
+                notes_label.pack(side="left", fill="x", expand=True, padx=(8, 4), pady=6)
+                notes_label.bind("<Button-1>", lambda _e, v=vn, lbl=notes_label, c=cat: open_notes_popup(c, v, lbl))
+
+            if start_index + BATCH < len(vns):
+                app.after(16, lambda: _render_batch(start_index + BATCH))
+
+        _render_batch(0)
+
+    def _schedule_refresh(*_args) -> None:
+        if _search_job[0]:
+            app.after_cancel(_search_job[0])
+        _search_job[0] = app.after(150, refresh_right_panel)
+
+    search_var.trace_add("write", _schedule_refresh)
 
     def remove_vn(category: str, vn: dict) -> None:
         """

@@ -1,6 +1,8 @@
 import os
 import sys
 import hashlib
+import threading
+from collections import OrderedDict
 import requests
 import customtkinter
 from PIL import Image, ImageDraw
@@ -14,7 +16,11 @@ _session.headers.update({
 })
 
 _executor = ThreadPoolExecutor(max_workers=2)
-_bytes_cache: dict[str, bytes] = {}
+_cache_lock = threading.Lock()
+_bytes_cache: OrderedDict[str, bytes] = OrderedDict()
+_image_cache: OrderedDict[tuple, customtkinter.CTkImage] = OrderedDict()
+_bytes_cache_max = [256]
+_image_cache_max = [200]
 _cache_main_only = [False]
 
 
@@ -44,6 +50,60 @@ def set_cover_cache_max(limit: int) -> None:
 
 def set_cache_main_only(enabled: bool) -> None:
     _cache_main_only[0] = bool(enabled)
+
+
+def set_memory_cache_max(limit: int) -> None:
+    """
+    Sets the max number of in-memory byte entries to keep (LRU).
+    """
+    _bytes_cache_max[0] = max(0, int(limit))
+    _trim_cache(_bytes_cache, _bytes_cache_max[0])
+
+
+def set_image_cache_max(limit: int) -> None:
+    """
+    Sets the max number of in-memory image entries to keep (LRU).
+    """
+    _image_cache_max[0] = max(0, int(limit))
+    _trim_cache(_image_cache, _image_cache_max[0])
+
+
+def _trim_cache(cache: OrderedDict, max_size: int) -> None:
+    if max_size <= 0:
+        with _cache_lock:
+            cache.clear()
+        return
+    with _cache_lock:
+        while len(cache) > max_size:
+            cache.popitem(last=False)
+
+
+def _lru_get(cache: OrderedDict, key):
+    with _cache_lock:
+        if key not in cache:
+            return None
+        value = cache.pop(key)
+        cache[key] = value
+        return value
+
+
+def _lru_set(cache: OrderedDict, key, value, max_size: int) -> None:
+    if max_size <= 0:
+        return
+    with _cache_lock:
+        if key in cache:
+            cache.pop(key)
+        cache[key] = value
+        while len(cache) > max_size:
+            cache.popitem(last=False)
+
+
+def _allow_memory_cache(cache_context: str) -> bool:
+    return (cache_context == "main") or (not _cache_main_only[0])
+
+
+def _image_cache_key(url: str, size: tuple[int, int], radius: int, variant: str) -> tuple:
+    return (url, int(size[0]), int(size[1]), int(radius), variant)
 
 
 def _resize_to_cover(img: Image.Image, size: tuple[int, int]) -> Image.Image:
@@ -87,14 +147,16 @@ def _evict_oldest(max_files: int) -> None:
 def _fetch_bytes(url: str, cache_context: str = "main") -> bytes:
     should_write_cache = (cache_context == "main") or (not _cache_main_only[0])
 
-    if url in _bytes_cache:
-        return _bytes_cache[url]
+    cached = _lru_get(_bytes_cache, url)
+    if cached is not None:
+        return cached
 
     cache_path = _url_to_cache_path(url)
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as f:
             data = f.read()
-        _bytes_cache[url] = data
+        if should_write_cache:
+            _lru_set(_bytes_cache, url, data, _bytes_cache_max[0])
         return data
 
     response = _session.get(url, timeout=5)
@@ -102,7 +164,7 @@ def _fetch_bytes(url: str, cache_context: str = "main") -> bytes:
     data = response.content
 
     if should_write_cache:
-        _bytes_cache[url] = data
+        _lru_set(_bytes_cache, url, data, _bytes_cache_max[0])
         try:
             os.makedirs(_COVER_CACHE_DIR, exist_ok=True)
             with open(cache_path, "wb") as f:
@@ -126,13 +188,20 @@ def load_image_from_url(url, size=(150, 200), radius=10, cache_context: str = "m
         A CTkImage on success, or None if the request fails
     """
     try:
+        cache_key = _image_cache_key(url, size, radius, "normal")
+        cached_image = _lru_get(_image_cache, cache_key)
+        if cached_image is not None:
+            return cached_image
         data = _fetch_bytes(url, cache_context=cache_context)
         fetch_size = (size[0] * 2, size[1] * 2)
         img = Image.open(BytesIO(data)).convert("RGBA")
         img = _resize_to_cover(img, fetch_size)
         img = round_image(img, radius * 2)
         img.load()
-        return customtkinter.CTkImage(img, size=size)
+        ctk_image = customtkinter.CTkImage(img, size=size)
+        if _allow_memory_cache(cache_context):
+            _lru_set(_image_cache, cache_key, ctk_image, _image_cache_max[0])
+        return ctk_image
     except Exception:
         return None
 
@@ -167,6 +236,19 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict, cache_cont
         images: Dict with "normal" and "dimmed" keys to populate.
     """
     try:
+        normal_key = _image_cache_key(url, size, 20, "normal")
+        dimmed_key = _image_cache_key(url, size, 20, "dimmed")
+        cached_normal = _lru_get(_image_cache, normal_key)
+        cached_dimmed = _lru_get(_image_cache, dimmed_key)
+        if cached_normal is not None and cached_dimmed is not None:
+            images["normal"] = cached_normal
+            images["dimmed"] = cached_dimmed
+            def _apply_cached():
+                if label.winfo_exists():
+                    label.configure(image=images["normal"], text="")
+                    label.image = images["normal"]
+            label.after(0, _apply_cached)
+            return
         data = _fetch_bytes(url, cache_context=cache_context)
         fetch_size = (size[0] * 2, size[1] * 2)
         img_pil = Image.open(BytesIO(data)).convert("RGBA")
@@ -180,6 +262,9 @@ def async_load_with_hover(label, url: str, size: tuple, images: dict, cache_cont
 
     images["normal"] = customtkinter.CTkImage(img_pil, size=size)
     images["dimmed"] = customtkinter.CTkImage(dimmed_rgba, size=size)
+    if _allow_memory_cache(cache_context):
+        _lru_set(_image_cache, normal_key, images["normal"], _image_cache_max[0])
+        _lru_set(_image_cache, dimmed_key, images["dimmed"], _image_cache_max[0])
 
     def _apply():
         if label.winfo_exists():
