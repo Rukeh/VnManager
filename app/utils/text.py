@@ -1,7 +1,7 @@
 import re
 
 
-def clean_description(text, MAX_DESCRIPTION_LENGTH=9999):
+def clean_description(text, MAX_DESCRIPTION_LENGTH=9999, collapse_whitespace: bool = False):
     """
     Strips VNDB BBCode markup from a description string and truncates it.
     Args:
@@ -14,6 +14,8 @@ def clean_description(text, MAX_DESCRIPTION_LENGTH=9999):
     text = re.sub(r'\[url=[^\]]*\](.*?)\[/url\]', r'\1', text, flags=re.DOTALL)
     text = re.sub(r'\[/?[a-zA-Z][^\]]*\]', '', text)
     text = text.strip()
+    if collapse_whitespace:
+        text = re.sub(r'\s+', ' ', text).strip()
     if len(text) > MAX_DESCRIPTION_LENGTH:
         text = text[:MAX_DESCRIPTION_LENGTH].rsplit(' ', 1)[0] + '...'
     return text

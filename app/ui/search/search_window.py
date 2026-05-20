@@ -676,7 +676,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
                 desc_lbl = customtkinter.CTkLabel(
                     text_frame,
-                    text=clean_description(vn.get("description")),
+                    text=clean_description(vn.get("description"), 220, collapse_whitespace=True),
                     font=FONT_SMALL,
                     text_color=TEXT_MUTED,
                     anchor="w",
