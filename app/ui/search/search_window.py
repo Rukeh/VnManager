@@ -52,6 +52,9 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     _has_more_pages = [False]
     _is_loading_more = [False]
     _rendered_count = [0]
+    _grid_columns = [None]
+    _render_limit_reached = [False]
+    MAX_RENDERED_RESULTS = 120
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -455,6 +458,13 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         font=("Nunito", 12, "bold"),
         corner_radius=20,
     )
+    render_limit_label = customtkinter.CTkLabel(
+        load_more_row,
+        text="",
+        font=FONT_SMALL,
+        text_color=TEXT_MUTED,
+        anchor="center",
+    )
 
     def _submit_image_hover(label, url, size, images):
         future = submit_image_task(async_load_with_hover, label, url, size, images, "search")
@@ -578,6 +588,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             widget.destroy()
         filtered_data = _filter_results(api_data)
         _rendered_count[0] = 0
+        _render_limit_reached[0] = False
 
         if not filtered_data:
             customtkinter.CTkLabel(
@@ -588,10 +599,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             _update_load_more_button()
             return
 
+        if view_mode.get() == "list" and len(filtered_data) > MAX_RENDERED_RESULTS:
+            filtered_data = filtered_data[:MAX_RENDERED_RESULTS]
+            _render_limit_reached[0] = True
+
         if view_mode.get() == "list":
+            _grid_columns[0] = None
             _render_list(filtered_data, _render_gen[0], start_index=0)
         else:
-            _render_grid(filtered_data, _render_gen[0], start_index=0)
+            cover_size = cover_size_for_width(window.winfo_width(), "grid")
+            _grid_columns[0] = _calc_grid_columns(cover_size)
+            _render_grid(filtered_data, _render_gen[0], start_index=0, columns=_grid_columns[0])
         _rendered_count[0] = len(filtered_data)
         _update_load_more_button()
 
@@ -703,10 +721,17 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
         _render_batch(0)
 
-    def _render_grid(api_data: list, gen: int, start_index: int = 0) -> None:
-        cover_size = cover_size_for_width(window.winfo_width(), "grid")
+    def _calc_grid_columns(cover_size: tuple[int, int]) -> int:
         card_width = cover_size[0] + 30
-        columns = max(1, logical_width(window) // card_width)
+        width = logical_width(results_frame)
+        if width <= 1:
+            width = logical_width(window)
+        return max(1, width // card_width)
+
+    def _render_grid(api_data: list, gen: int, start_index: int = 0, columns: int | None = None) -> None:
+        cover_size = cover_size_for_width(window.winfo_width(), "grid")
+        if columns is None:
+            columns = _calc_grid_columns(cover_size)
         for i in range(20):
             results_frame.columnconfigure(i, weight=0)
         results_frame.columnconfigure(list(range(columns)), weight=1)
@@ -798,13 +823,26 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if not filtered_data:
             _update_load_more_button()
             return
+        if view_mode.get() == "list":
+            remaining = MAX_RENDERED_RESULTS - _rendered_count[0]
+            if remaining <= 0:
+                _render_limit_reached[0] = True
+                _update_load_more_button()
+                return
+            if len(filtered_data) > remaining:
+                filtered_data = filtered_data[:remaining]
+                _render_limit_reached[0] = True
+        else:
+            _render_limit_reached[0] = False
+
         _render_gen[0] += 1
         gen = _render_gen[0]
         start_index = _rendered_count[0]
         if view_mode.get() == "list":
             _render_list(filtered_data, gen, start_index=start_index)
         else:
-            _render_grid(filtered_data, gen, start_index=start_index)
+            columns = _grid_columns[0]
+            _render_grid(filtered_data, gen, start_index=start_index, columns=columns)
         _rendered_count[0] += len(filtered_data)
         _update_load_more_button()
 
@@ -813,18 +851,29 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         _update_load_more_button()
 
     def _update_load_more_button() -> None:
-        should_show = bool(last_results) and (_has_more_pages[0] or _is_loading_more[0])
+        limit_active = _render_limit_reached[0] and view_mode.get() == "list"
+        should_show = bool(last_results) and (_has_more_pages[0] or _is_loading_more[0] or limit_active)
         if not should_show:
             load_more_btn.pack_forget()
+            render_limit_label.pack_forget()
             if load_more_row.winfo_manager():
                 load_more_row.pack_forget()
             return
+        if not load_more_row.winfo_manager():
+            load_more_row.pack(fill="x", padx=12, pady=(0, 10))
+        if limit_active:
+            load_more_btn.pack_forget()
+            render_limit_label.configure(
+                text=f"Showing first {MAX_RENDERED_RESULTS} results. Refine your search to see more."
+            )
+            if not render_limit_label.winfo_manager():
+                render_limit_label.pack(pady=(2, 8))
+            return
+        render_limit_label.pack_forget()
         load_more_btn.configure(
             text="Loading..." if _is_loading_more[0] else "Load more",
             state="disabled" if _is_loading_more[0] else "normal",
         )
-        if not load_more_row.winfo_manager():
-            load_more_row.pack(fill="x", padx=12, pady=(0, 10))
         if not load_more_btn.winfo_manager():
             load_more_btn.pack(pady=(2, 8))
 
@@ -842,7 +891,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         return merged, added
 
     def _load_more() -> None:
-        if _is_loading_more[0] or not _has_more_pages[0]:
+        if _is_loading_more[0] or not _has_more_pages[0] or (_render_limit_reached[0] and view_mode.get() == "list"):
             return
         _set_load_more_loading(True)
         token_snapshot = _search_token[0]
