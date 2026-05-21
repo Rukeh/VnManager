@@ -81,8 +81,8 @@ THEMES: dict[str, Theme] = {
             FONT_LOGO=("Nunito", 18, "bold"),
         ),
     ),
-    "dark": Theme(
-        name="dark",
+    "dark_pink": Theme(
+        name="dark_pink",
         colors=ThemeColors(
             BG="#1b1420",
             SIDEBAR_BG="#23182a",
