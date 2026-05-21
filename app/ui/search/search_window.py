@@ -9,7 +9,7 @@ from app.api.vndb import search_vns, search_tags
 from app.ui.search.vn_detail import open_vn_detail
 from app.utils.image import load_image_from_url, submit_image_task, async_load_with_hover, cover_size_for_width
 from app.utils.text import clean_description
-from app.ui.shared.components import render_tags, enable_touchpad_scroll, logical_width
+from app.ui.shared.components import render_tags, logical_width
 from app.utils.save import save_data
 
 from app.ui.shared.theme import *
@@ -55,6 +55,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     _grid_columns = [None]
     _render_limit_reached = [False]
     MAX_RENDERED_RESULTS = 120
+    FAST_RESULTS_SCROLL_UNITS = 100
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -444,6 +445,35 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             results_frame._parent_canvas.yview_moveto(0)
         except (tkinter.TclError, AttributeError) as e:
             print(f"[VnManager] Failed to scroll results to top: {e}", file=sys.stderr)
+
+    def _bind_fast_results_scroll(scroll_units: int = FAST_RESULTS_SCROLL_UNITS) -> None:
+        canvas = results_frame._parent_canvas
+
+        def _is_over_results() -> bool:
+            x, y = window.winfo_pointerx(), window.winfo_pointery()
+            cx, cy = canvas.winfo_rootx(), canvas.winfo_rooty()
+            cw, ch = canvas.winfo_width(), canvas.winfo_height()
+            return cx <= x <= cx + cw and cy <= y <= cy + ch
+
+        def _scroll_units(units: int):
+            if not _is_over_results():
+                return None
+            canvas.yview_scroll(units, "units")
+            return "break"
+
+        def _on_mousewheel(event):
+            if not _is_over_results():
+                return None
+            if event.delta == 0:
+                return None
+            units = int(-event.delta / 120)
+            if units == 0:
+                units = -1 if event.delta > 0 else 1
+            return _scroll_units(units * scroll_units)
+
+        window.bind("<MouseWheel>", _on_mousewheel, add="+")
+        window.bind("<Button-4>", lambda _e: _scroll_units(-scroll_units), add="+")
+        window.bind("<Button-5>", lambda _e: _scroll_units(scroll_units), add="+")
 
     load_more_row = customtkinter.CTkFrame(window, fg_color="transparent")
 
@@ -1031,4 +1061,4 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     entry.bind("<Return>", lambda _e: do_search())
     load_more_btn.configure(command=_load_more)
-    enable_touchpad_scroll(window, results_frame)
+    _bind_fast_results_scroll()
