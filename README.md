@@ -89,6 +89,6 @@ If something breaks or you have an idea, feel free to open an issue ♡
 
 MIT — see [LICENSE](LICENSE)
 
-## Dsclaimer
+## Disclaimer
 
 Some backend components were made with the help of AI
