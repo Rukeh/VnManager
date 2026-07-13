@@ -12,7 +12,7 @@ from app.ui.shared.theme import (
 )
 from app.ui.shared.components import set_low_perf_mode
 from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CACHE_DIR
-from app.utils.save import save_data, reset_data
+from app.utils.save import save_data, reset_data, get_save_dir
 
 
 def build_settings(parent, data: dict) -> None:
@@ -398,7 +398,7 @@ def build_settings(parent, data: dict) -> None:
         main_only = bool(settings.get("cache_main_only", False))
         set_cache_main_only(main_only)
         scope_button.configure(
-            text="Main window only" if main_only else "All windows",
+            text="Main window only" if main_only else "Include searches",
             fg_color=PINK if main_only else PINK_LIGHT,
             hover_color=PINK_DARK if main_only else PINK_MID,
             text_color=WHITE if main_only else PINK_DARK,
@@ -521,6 +521,20 @@ def build_settings(parent, data: dict) -> None:
             traceback.print_exc()
             _show_cache_error_popup("Open cache folder failed", f"Failed to open cache folder:\n{e}")
 
+    def _open_save_folder() -> None:
+        save_dir = get_save_dir()
+        try:
+            os.makedirs(save_dir, exist_ok=True)
+            if sys.platform.startswith("win"):
+                os.startfile(save_dir)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", save_dir], check=True)
+            else:
+                subprocess.run(["xdg-open", save_dir], check=True)
+        except (OSError, subprocess.SubprocessError) as e:
+            traceback.print_exc()
+            _show_cache_error_popup("Open save folder failed", f"Failed to open save folder:\n{e}")
+
     cache_actions_row = customtkinter.CTkFrame(cache_text_col, fg_color="transparent")
     cache_actions_row.pack(anchor="w", pady=(4, 0))
 
@@ -542,6 +556,16 @@ def build_settings(parent, data: dict) -> None:
         text_color=PINK_DARK, font=("Nunito", 12, "bold"),
         corner_radius=20,
         command=_open_cache_folder,
+    ).pack(side="left", padx=(8, 0))
+
+    customtkinter.CTkButton(
+        cache_actions_row,
+        text="Open save folder",
+        width=150, height=28,
+        fg_color=PINK_LIGHT, hover_color=PINK,
+        text_color=PINK_DARK, font=("Nunito", 12, "bold"),
+        corner_radius=20,
+        command=_open_save_folder,
     ).pack(side="left", padx=(8, 0))
 
     # Initialise slider to saved value

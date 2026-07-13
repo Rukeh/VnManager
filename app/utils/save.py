@@ -31,6 +31,10 @@ def _get_save_dir() -> str:
         return os.path.join(base, "vnmanager")
 
 
+def get_save_dir() -> str:
+    return _get_save_dir()
+
+
 _SAVE_FILE = os.path.join(_get_save_dir(), "save.json")
 _SAVE_LOCK = threading.Lock()
 

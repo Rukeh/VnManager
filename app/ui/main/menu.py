@@ -41,10 +41,15 @@ def build_menu(parent, on_library, on_settings) -> None:
     center = customtkinter.CTkFrame(parent, fg_color="transparent")
     center.place(relx=0.5, rely=0.5, anchor="center")
 
-    customtkinter.CTkLabel(
-        center, text="🌸  VnManager",
-        font=FONT_LOGO, text_color=PINK_DARK,
-    ).pack(pady=(0, 6))
+    logo_path = _resolve_icon_path("assets/icon/icon.png")
+    if logo_path is not None:
+        try:
+            with Image.open(logo_path) as logo_source:
+                logo_pil = logo_source.copy()
+            center._logo_image = customtkinter.CTkImage(logo_pil, size=(120, 120))
+            customtkinter.CTkLabel(center, text="", image=center._logo_image).pack(pady=(0, 6))
+        except (FileNotFoundError, OSError):
+            pass
 
     customtkinter.CTkLabel(
         center, text="what would you like to do?",

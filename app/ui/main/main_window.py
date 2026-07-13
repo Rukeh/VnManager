@@ -15,7 +15,7 @@ from app.utils.image import set_cache_main_only, set_cover_cache_max
 
 def _apply_app_icon(app: customtkinter.CTk) -> None:
     icon_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "assets", "icon.png")
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "assets", "icon", "icon.png")
     )
     try:
         icon_image = tkinter.PhotoImage(file=icon_path)
@@ -66,7 +66,7 @@ def run() -> None:
     topbar.pack_propagate(False)
 
     customtkinter.CTkLabel(
-        topbar, text="🌸  VnManager",
+        topbar, text="VnManager",
         font=FONT_LOGO, text_color=PINK_DARK,
     ).pack(side="left", padx=(16, 0))
 
@@ -242,7 +242,7 @@ def run() -> None:
             nav_settings_btn.pack(side="left", padx=(6, 0), pady=10)
             nav_library_btn.configure(fg_color=PINK, text_color=WHITE, hover_color=PINK_DARK)
             nav_settings_btn.configure(fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID)
-            search_vn_btn.pack(side="right", padx=(0, 16), pady=10)
+            search_vn_btn.pack(side="right", padx=(0, 8), pady=10)
         elif view == "settings":
             nav_library_btn.pack(side="left", padx=(12, 0), pady=10)
             nav_settings_btn.pack(side="left", padx=(6, 0), pady=10)
