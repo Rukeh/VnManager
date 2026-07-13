@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0] - 2026-07-14
+### New features
+- Welcome menu screen
+- Settings panel to configure theme and qol options
+- Added ability to change themes of the app in settings
+- Barebone topbar to navigate between menus
+- Cover cache management in Settings: configurable max cached covers, cache scope toggle (main window only vs. include search)
+- Reset savefile option (danger zone in settings)
+- Tag-based search with AND/OR (works similarly to vndb search, read in app explanation)
+- Separate Suggestive and Explicit NSFW toggles (replacing the single NSFW toggle)
+- "Load more" pagination for search results, with a render cap safeguard for very large result sets as it caused bug previously
+- VN detail popup now shows languages, platforms, VNDB ID, and length in minutes, plus a direct "Open on VNDB" link
+### Fixes
+- Increased scroll speed
+- Search failures now show an inline error message instead of failing silently
+- Wraplength and layout sizing corrected on Windows HiDPI/scaled displays (not fully tested)
+- Library and search results now render in batches to keep the UI responsive with large lists (probably cant do more to keep window responsive as its a ctkinter limitation)
+
+---
+
 ## [0.2.0] - 2026-03-08
 ### New features
 - VN detail popup 
@@ -31,4 +51,4 @@
 - Remove VNs from categories
 - Create, rename and delete categories
 - Persistent save to data/save.json
-- Async image loading
+- Async image loading 
