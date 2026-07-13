@@ -1,5 +1,7 @@
 # 🌸 VnManager
 
+# DO NOT DOWNLOAD RIGHT NOW 0.3 ON ITS WAY AND BUNCH OF REQUIREMENT DOWNLOADS ARE BROKEN
+
 A cute little desktop app for tracking your visual novel backlog, built because spreadsheets are not kawaii enough ✨
 
 Pulls everything straight from [VNDB](https://vndb.org) be it covers, ratings, tags, descriptions, release info, all that in a pink fluffy UI you'll actually enjoy looking at (I hope).
