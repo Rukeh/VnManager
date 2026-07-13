@@ -9,7 +9,6 @@
 - Cover cache management in Settings: configurable max cached covers, cache scope toggle (main window only vs. include search)
 - Reset savefile option (danger zone in settings)
 - Tag-based search with AND/OR (works similarly to vndb search, read in app explanation)
-- Separate Suggestive and Explicit NSFW toggles (replacing the single NSFW toggle)
 - "Load more" pagination for search results, with a render cap safeguard for very large result sets as it caused bug previously
 - VN detail popup now shows languages, platforms, VNDB ID, and length in minutes, plus a direct "Open on VNDB" link
 ### Fixes
