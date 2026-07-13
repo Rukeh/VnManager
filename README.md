@@ -1,6 +1,6 @@
 # 🌸 VnManager
 
-#DO NOT DOWNLOAD RIGHT NOW 0.3 ON ITS WAY AND BUNCH OF REQUIREMENT DOWNLOADS ARE BROKEN
+# DO NOT DOWNLOAD RIGHT NOW 0.3 ON ITS WAY AND BUNCH OF REQUIREMENT DOWNLOADS ARE BROKEN
 
 A cute little desktop app for tracking your visual novel backlog, built because spreadsheets are not kawaii enough ✨
 
