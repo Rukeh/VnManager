@@ -56,6 +56,8 @@ def enable_touchpad_scroll(root, *scrollable_frames: customtkinter.CTkScrollable
     def _route(event, direction):
         x, y = root.winfo_pointerx(), root.winfo_pointery()
         for canvas in canvases:
+            if not canvas.winfo_viewable():
+                continue
             cx = canvas.winfo_rootx()
             cy = canvas.winfo_rooty()
             cw = canvas.winfo_width()

@@ -381,6 +381,8 @@ def build_library(vns_scroll, right_panel, app_state, app):
         canvas = vns_scroll._parent_canvas
 
         def _is_over_results() -> bool:
+            if not canvas.winfo_viewable():
+                return False
             x, y = app.winfo_pointerx(), app.winfo_pointery()
             cx, cy = canvas.winfo_rootx(), canvas.winfo_rooty()
             cw, ch = canvas.winfo_width(), canvas.winfo_height()

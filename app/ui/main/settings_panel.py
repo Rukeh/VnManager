@@ -15,7 +15,7 @@ from app.utils.image import set_cover_cache_max, set_cache_main_only, _COVER_CAC
 from app.utils.save import save_data, reset_data, get_save_dir
 
 
-def build_settings(parent, data: dict) -> None:
+def build_settings(parent, data: dict) -> customtkinter.CTkScrollableFrame:
     """
     Renders the settings panel into parent.
     Args:
@@ -106,7 +106,8 @@ def build_settings(parent, data: dict) -> None:
         def _confirm_inner() -> None:
             on_confirm()
             popup.destroy()
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            subprocess.Popen([sys.executable, *sys.argv])
+            popup.after(300, lambda: os._exit(0))
 
         popup.protocol("WM_DELETE_WINDOW", _cancel_inner)
         customtkinter.CTkButton(
@@ -635,7 +636,8 @@ def build_settings(parent, data: dict) -> None:
             data.clear()
             data.update(new_data)
             popup.destroy()
-            os.execl(sys.executable, sys.executable, *sys.argv)
+            subprocess.Popen([sys.executable, *sys.argv])
+            popup.after(300, lambda: os._exit(0))
 
         customtkinter.CTkButton(
             btn_frame,
@@ -665,3 +667,5 @@ def build_settings(parent, data: dict) -> None:
         corner_radius=20,
         command=_open_reset_popup,
     ).pack(side="right", padx=(16, 0))
+
+    return scroll

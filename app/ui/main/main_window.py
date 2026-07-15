@@ -230,7 +230,7 @@ def run() -> None:
 
     # ── Settings frame ────────────────────────────────────────────────────────
     settings_frame = customtkinter.CTkFrame(content, fg_color=BG, corner_radius=0)
-    build_settings(settings_frame, data)
+    settings_scroll = build_settings(settings_frame, data)
 
     # ── Navigation ────────────────────────────────────────────────────────────
     _active_view = ["menu"]
@@ -294,7 +294,7 @@ def run() -> None:
 
     app.bind("<Configure>", _on_main_resize)
 
-    enable_touchpad_scroll(app, categories_scroll, vns_scroll)
+    enable_touchpad_scroll(app, categories_scroll, vns_scroll, settings_scroll)
 
     refresh_categories()
     show_menu()
