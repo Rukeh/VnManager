@@ -18,7 +18,6 @@ def open_vn_detail(parent, vn: dict, cache_context: str = "main") -> None:
     def _async_load_image(label, url, size):
         img = load_image_from_url(url, size=size, cache_context=cache_context)
         if img:
-            _cover_ctk_img[0] = img
             def _apply():
                 if label.winfo_exists():
                     label.configure(image=img)
@@ -181,8 +180,8 @@ def open_vn_detail(parent, vn: dict, cache_context: str = "main") -> None:
         new_size = cover_size_for_width(popup.winfo_width(), "detail")
         if cover_frame.winfo_exists():
             cover_frame.configure(width=new_size[0], height=new_size[1])
-        if _cover_ctk_img[0] is not None:
-            _cover_ctk_img[0].configure(size=new_size)
+        if img_url and img_label.winfo_exists():
+            submit_image_task(_async_load_image, img_label, img_url, new_size)
 
     def _update_wraplengths():
         w_meta = max(100, logical_width(meta) - 8)
