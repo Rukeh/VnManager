@@ -68,7 +68,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     top_bar.pack(fill="x")
     top_bar.pack_propagate(False)
 
-    toggle_btn = customtkinter.CTkButton(top_bar, text="⊞ Grid", width=76,fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK,font=("Nunito", 12, "bold"),corner_radius=20, command=lambda :toggle_view())
+    toggle_btn = customtkinter.CTkButton(top_bar, text="Grid", width=76,fg_color=PINK_LIGHT, hover_color=PINK_MID, text_color=PINK_DARK,font=("Nunito", 12, "bold"),corner_radius=20, command=lambda :toggle_view())
     toggle_btn.pack(side="right", padx=(0, 12))
 
     settings = data.setdefault("settings", {"allow_suggestive": False, "allow_explicit": False})
@@ -127,7 +127,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     tag_toggle_btn.pack(side="right", padx=(0, 4))
     
     customtkinter.CTkLabel(
-        top_bar, text="🔎  Search VnDB",
+        top_bar, text="Search VnDB",
         font=("Nunito", 16, "bold"), text_color=PINK_DARK,
     ).pack(side="left", padx=(16, 0))
 
@@ -137,9 +137,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     )
     search_frame.pack(side="right", fill="x", expand=True, padx=(12, 8), pady=12)
 
-    customtkinter.CTkLabel(
-        search_frame, text="🔍", font=("Quicksand", 12), text_color=PINK,
-    ).pack(side="left", padx=(10, 4))
+    customtkinter.CTkLabel(search_frame, text="").pack(side="left", padx=(10, 4))
 
     entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search a VN...  (Press Enter)", border_width=0, fg_color='transparent', font = FONT_BODY, text_color=TEXT, placeholder_text_color=TEXT_MUTED)
     entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=6)
@@ -174,12 +172,12 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         count = _active_tag_count()
         if count:
             tag_toggle_btn.configure(
-                text=f"🏷️ Tags ({count})",
+                text=f" Tags ({count})",
                 fg_color=PINK, text_color=WHITE, hover_color=PINK_DARK,
             )
         else:
             tag_toggle_btn.configure(
-                text="🏷️ Tags",
+                text=" Tags",
                 fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID,
             )
 
@@ -427,7 +425,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             _group_entries.append(entry_g)
 
             customtkinter.CTkButton(
-                group_row, text="✕", width=20, height=20,
+                group_row, text="X", width=20, height=20,
                 fg_color="transparent", hover_color=PINK_MID,
                 text_color=TEXT_DANGER, font=("Nunito", 10, "bold"),
                 corner_radius=10,
@@ -561,7 +559,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         ).pack(side="left", fill="x", expand=True)
 
         customtkinter.CTkButton(
-            top_row, text="Close ✕", width=28, height=28,
+            top_row, text="Close X", width=28, height=28,
             fg_color=PINK_LIGHT, hover_color=PINK_MID,
             text_color=PINK_DARK, font=FONT_TITLE, corner_radius=20,
             command=popup.destroy,

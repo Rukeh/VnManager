@@ -210,7 +210,7 @@ def run() -> None:
     search_bar_frame.pack(fill="x", padx=20, pady=(6, 4))
     search_bar_frame.pack_propagate(False)
 
-    customtkinter.CTkLabel(search_bar_frame, text="🔍", font=("Quicksand", 13), text_color=PINK).pack(side="left", padx=(12, 4))
+    customtkinter.CTkLabel(search_bar_frame, text="", font=("Quicksand", 13), text_color=PINK).pack(side="left", padx=(12, 4))
 
     customtkinter.CTkEntry(
         search_bar_frame,

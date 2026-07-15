@@ -42,7 +42,7 @@ def open_vn_detail(parent, vn: dict, cache_context: str = "main") -> None:
     header.pack_propagate(False)
 
     customtkinter.CTkLabel(
-        header, text="📖  Details",
+        header, text="  Details",
         font=("Nunito", 15, "bold"), text_color=PINK_DARK,
     ).pack(side="left", padx=16)
 

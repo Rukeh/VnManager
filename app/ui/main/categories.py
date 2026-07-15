@@ -176,7 +176,7 @@ def build_categories(categories_scroll, category_entry, app_state, app):
 
             customtkinter.CTkButton(
                 master=row_frame,
-                text="✕",
+                text="X",
                 width=28,
                 height=28,
                 fg_color="transparent",
@@ -187,7 +187,7 @@ def build_categories(categories_scroll, category_entry, app_state, app):
 
             customtkinter.CTkButton(
                 master=row_frame,
-                text="🖍",
+                text="E",
                 width=28,
                 height=28,
                 fg_color="transparent",
