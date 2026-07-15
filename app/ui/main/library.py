@@ -136,7 +136,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 btn_col.pack(side="right", anchor="n", padx=(4, 0))
 
                 customtkinter.CTkButton(
-                    btn_col, text="✕", width=26, height=26,
+                    btn_col, text="X", width=26, height=26,
                     fg_color=PINK_LIGHT, hover_color=PINK,
                     text_color=PINK_DARK, font=("Nunito", 12, "bold"),
                     corner_radius=13,
@@ -144,7 +144,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 ).pack(pady=(0, 4))
 
                 customtkinter.CTkButton(
-                    btn_col, text="↪", width=26, height=26,
+                    btn_col, text="Move", width=26, height=26,
                     fg_color=PINK_LIGHT, hover_color=PINK,
                     text_color=PINK_DARK, font=("Nunito", 12, "bold"),
                     corner_radius=13,
