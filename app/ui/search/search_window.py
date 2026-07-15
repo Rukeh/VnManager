@@ -15,6 +15,8 @@ from app.utils.save import save_data
 from app.ui.shared.theme import *
 
 _search_executor = ThreadPoolExecutor(max_workers=2)
+WINDOWS_RESIZE_DEBOUNCE_MS = 320
+DEFAULT_RESIZE_DEBOUNCE_MS = 200
 
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
@@ -645,6 +647,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     def _render_list(api_data: list, gen: int, start_index: int = 0) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "list")
+        list_text_wrap = max(180, logical_width(window) - cover_size[0] - 120)
+        list_desc_wrap = max(140, list_text_wrap - 80)
         BATCH = 5
 
         def _render_batch(index: int) -> None:
@@ -695,12 +699,11 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     font=FONT_H2,
                     text_color=TEXT,
                     anchor="w",
-                    wraplength=380,
+                    wraplength=list_text_wrap,
                     cursor="hand2",
                 )
                 title_lbl.pack(fill="x")
                 title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
-                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, tf=text_frame: lbl.configure(wraplength=max(100, logical_width(tf) - 8)))
 
                 cats = _get_vn_categories(vn["id"])
                 if cats:
@@ -727,11 +730,10 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     font=FONT_SMALL,
                     text_color=TEXT_MUTED,
                     anchor="w",
-                    wraplength=300,
+                    wraplength=list_desc_wrap,
                     justify="left",
                 )
                 desc_lbl.pack(fill="x")
-                desc_lbl.bind("<Configure>", lambda e, lbl=desc_lbl, tf=text_frame: lbl.configure(wraplength=max(100, logical_width(tf) - 8)))
 
                 customtkinter.CTkButton(
                     text_frame,
@@ -760,6 +762,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     def _render_grid(api_data: list, gen: int, start_index: int = 0, columns: int | None = None) -> None:
         cover_size = cover_size_for_width(window.winfo_width(), "grid")
+        grid_title_wrap = max(100, cover_size[0] - 8)
         if columns is None:
             columns = _calc_grid_columns(cover_size)
         for i in range(20):
@@ -809,13 +812,12 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
                     text=vn["title"],
                     font=("Nunito", 12, "bold"),
                     text_color=TEXT,
-                    wraplength=130,
+                    wraplength=grid_title_wrap,
                     justify="center",
                     cursor="hand2",
                 )
                 title_lbl.pack(padx=6)
                 title_lbl.bind("<Button-1>", lambda _e, v=vn: open_vn_detail(window, v, cache_context="search"))
-                title_lbl.bind("<Configure>", lambda e, lbl=title_lbl, c=card: lbl.configure(wraplength=max(100, logical_width(c) - 8)))
 
                 cats = _get_vn_categories(vn["id"])
                 if cats:
@@ -1036,6 +1038,8 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     _resize_job = None
     _last_size = [0, 0]
     _last_rendered_size = [0, 0]
+    _resize_debounce_ms = WINDOWS_RESIZE_DEBOUNCE_MS if sys.platform == "win32" else DEFAULT_RESIZE_DEBOUNCE_MS
+    _last_resize_event_at = [0.0]
 
     def _on_resize(event):
         nonlocal _resize_job
@@ -1047,15 +1051,25 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         if new_size == _last_size:
             return
         _last_size[:] = new_size
+        _last_resize_event_at[0] = time.monotonic()
         if _resize_job:
             window.after_cancel(_resize_job)
+
         def _maybe_render():
+            nonlocal _resize_job
+            quiet_ms = (time.monotonic() - _last_resize_event_at[0]) * 1000.0
+            if quiet_ms < _resize_debounce_ms:
+                _resize_job = window.after(max(16, int(_resize_debounce_ms - quiet_ms)), _maybe_render)
+                return
             actual = [window.winfo_width(), window.winfo_height()]
             if actual == _last_rendered_size:
+                _resize_job = None
                 return
             _last_rendered_size[:] = actual
             render_results(last_results)
-        _resize_job = window.after(200, _maybe_render)
+            _resize_job = None
+
+        _resize_job = window.after(_resize_debounce_ms, _maybe_render)
 
     window.bind("<Configure>", _on_resize)
 
