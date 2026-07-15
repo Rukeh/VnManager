@@ -96,7 +96,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
             render_results(last_results)
 
     btn_suggestive = customtkinter.CTkButton(
-        top_bar, text="🌸 Suggestive", width=100,
+        top_bar, text="~ Suggestive", width=100,
         fg_color=PINK if settings["allow_suggestive"] else PINK_LIGHT,
         hover_color=PINK_ACCENT_HOVER if settings["allow_suggestive"] else PINK_MID, 
         text_color=WHITE if settings["allow_suggestive"] else PINK_DARK,
@@ -106,7 +106,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     btn_suggestive.pack(side="right", padx=(0, 6))
 
     btn_explicit = customtkinter.CTkButton(
-        top_bar, text="🚫 Explicit", width=90,
+        top_bar, text=" (18) Explicit", width=90,
         fg_color=PINK if settings["allow_explicit"] else PINK_LIGHT,
         hover_color=PINK_ACCENT_HOVER if settings["allow_explicit"] else PINK_MID,
         text_color=WHITE if settings["allow_explicit"] else PINK_DARK,
