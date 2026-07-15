@@ -109,7 +109,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 cover_frame.pack(side="left", padx=(0, 10))
                 cover_frame.pack_propagate(False)
 
-                img_label = customtkinter.CTkLabel(cover_frame, text="🌸", font=("Nunito", 24), cursor="hand2", fg_color="transparent")
+                img_label = customtkinter.CTkLabel(cover_frame, text="Loading...", font=("Nunito", 24), cursor="hand2", fg_color="transparent")
                 img_label.place(relx=0.5, rely=0.5, anchor="center")
 
                 _images = {"normal": None, "dimmed": None}
@@ -205,7 +205,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 note_preview = (note_text[:60] + "…") if len(note_text) > 60 else note_text
                 notes_label = customtkinter.CTkLabel(
                     notes_bar,
-                    text=f"📝  {note_preview}" if note_text else "📝  Add a note...",
+                    text=f"{note_preview}" if note_text else "Add a note...",
                     font=FONT_SMALL,
                     text_color=TEXT if note_text else TEXT_MUTED,
                     anchor="w",
@@ -250,7 +250,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
 
         customtkinter.CTkLabel(
             popup,
-            text=f"📝  Note for {vn['title']}",
+            text=f"Note for {vn['title']}",
             font=FONT_TITLE,
             text_color=TEXT,
             wraplength=320,
@@ -278,7 +278,7 @@ def build_library(vns_scroll, right_panel, app_state, app):
             if notes_label.winfo_exists():
                 note_preview = (note[:60] + "…") if len(note) > 60 else note
                 notes_label.configure(
-                    text=f"📝  {note_preview}" if note else "📝  Add a note...",
+                    text=f"{note_preview}" if note else "Add a note...",
                     text_color=TEXT if note else TEXT_MUTED,
                 )
             popup.destroy()
@@ -376,6 +376,37 @@ def build_library(vns_scroll, right_panel, app_state, app):
                 corner_radius=20,
                 command=confirm,
             ).pack(pady=12)
+
+    def _bind_fast_results_scroll(scroll_units: int = 100) -> None:
+        canvas = vns_scroll._parent_canvas
+
+        def _is_over_results() -> bool:
+            x, y = app.winfo_pointerx(), app.winfo_pointery()
+            cx, cy = canvas.winfo_rootx(), canvas.winfo_rooty()
+            cw, ch = canvas.winfo_width(), canvas.winfo_height()
+            return cx <= x <= cx + cw and cy <= y <= cy + ch
+
+        def _scroll_units(units: int):
+            if not _is_over_results():
+                return None
+            canvas.yview_scroll(units, "units")
+            return "break"
+
+        def _on_mousewheel(event):
+            if not _is_over_results():
+                return None
+            if event.delta == 0:
+                return None
+            units = int(-event.delta / 120)
+            if units == 0:
+                units = -1 if event.delta > 0 else 1
+            return _scroll_units(units * scroll_units)
+
+        app.bind("<MouseWheel>", _on_mousewheel, add="+")
+        app.bind("<Button-4>", lambda _e: _scroll_units(-scroll_units), add="+")
+        app.bind("<Button-5>", lambda _e: _scroll_units(scroll_units), add="+")
+
+    _bind_fast_results_scroll()
 
     app_state.refresh_library = refresh_right_panel
     return refresh_right_panel
