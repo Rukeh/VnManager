@@ -17,6 +17,7 @@ from app.ui.shared.theme import *
 _search_executor = ThreadPoolExecutor(max_workers=2)
 WINDOWS_RESIZE_DEBOUNCE_MS = 320
 DEFAULT_RESIZE_DEBOUNCE_MS = 200
+DEFAULT_FAST_RESULTS_SCROLL_UNITS = 100
 
 def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> None:
     """
@@ -57,7 +58,6 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     _grid_columns = [None]
     _render_limit_reached = [False]
     MAX_RENDERED_RESULTS = 120
-    FAST_RESULTS_SCROLL_UNITS = 100
 
     def _get_vn_categories(vn_id: str) -> list[str]:
         return [cat for cat, vns in data.get("vns", {}).items() if any(v["id"] == vn_id for v in vns)]
@@ -72,6 +72,11 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
     toggle_btn.pack(side="right", padx=(0, 12))
 
     settings = data.setdefault("settings", {"allow_suggestive": False, "allow_explicit": False})
+    settings.setdefault("fast_results_scroll_units", DEFAULT_FAST_RESULTS_SCROLL_UNITS)
+    try:
+        fast_results_scroll_units = int(settings.get("fast_results_scroll_units", DEFAULT_FAST_RESULTS_SCROLL_UNITS))
+    except (TypeError, ValueError):
+        fast_results_scroll_units = DEFAULT_FAST_RESULTS_SCROLL_UNITS
 
     def _toggle_suggestive():
         settings["allow_suggestive"] = not settings["allow_suggestive"]
@@ -446,7 +451,7 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
         except (tkinter.TclError, AttributeError) as e:
             print(f"[VnManager] Failed to scroll results to top: {e}", file=sys.stderr)
 
-    def _bind_fast_results_scroll(scroll_units: int = FAST_RESULTS_SCROLL_UNITS) -> None:
+    def _bind_fast_results_scroll(scroll_units: int) -> None:
         canvas = results_frame._parent_canvas
 
         def _is_over_results() -> bool:
@@ -1073,4 +1078,4 @@ def open_search_window(parent: customtkinter.CTk, data, on_vn_added = None) -> N
 
     entry.bind("<Return>", lambda _e: do_search())
     load_more_btn.configure(command=_load_more)
-    _bind_fast_results_scroll()
+    _bind_fast_results_scroll(max(1, fast_results_scroll_units))

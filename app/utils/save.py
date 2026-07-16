@@ -12,6 +12,7 @@ _DEFAULT_DATA = {
     "settings": {
         "allow_suggestive": False,
         "allow_explicit": False,
+        "fast_results_scroll_units": 100,
         "low_perf_mode": False,
         "cover_cache_max": 500,
         "cache_main_only": False,

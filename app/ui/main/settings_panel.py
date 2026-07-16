@@ -25,6 +25,7 @@ def build_settings(parent, data: dict) -> customtkinter.CTkScrollableFrame:
     settings = data.setdefault("settings", {})
     settings.setdefault("font_scale", 1.0)
     settings.setdefault("high_contrast_mode", False)
+    settings.setdefault("fast_results_scroll_units", 100 if sys.platform == "win32" else 5)
 
     header = customtkinter.CTkFrame(parent, fg_color=BG, corner_radius=0, height=52)
     header.pack(fill="x", padx=20, pady=(14, 0))
@@ -202,6 +203,56 @@ def build_settings(parent, data: dict) -> customtkinter.CTkScrollableFrame:
         button_hover_color=PINK_DARK,
         command=lambda: _toggle(switch_var.get()),
     ).pack(side="right", padx=(16, 0))
+
+    fast_scroll_card = customtkinter.CTkFrame(scroll, fg_color=CARD_BG, border_width=1, border_color=BORDER, corner_radius=14)
+    fast_scroll_card.pack(fill="x", pady=(0, 8))
+
+    fast_scroll_inner = customtkinter.CTkFrame(fast_scroll_card, fg_color="transparent")
+    fast_scroll_inner.pack(fill="x", padx=16, pady=14)
+
+    fast_scroll_title_row = customtkinter.CTkFrame(fast_scroll_inner, fg_color="transparent")
+    fast_scroll_title_row.pack(fill="x")
+
+    customtkinter.CTkLabel(
+        fast_scroll_title_row, text="Search result scroll speed",
+        font=FONT_BODY, text_color=TEXT, anchor="w",
+    ).pack(side="left")
+
+    fast_scroll_value_label = customtkinter.CTkLabel(
+        fast_scroll_title_row,
+        text="100",
+        font=("Nunito", 12, "bold"), text_color=PINK_DARK, anchor="e",
+    )
+    fast_scroll_value_label.pack(side="right")
+
+    customtkinter.CTkLabel(
+        fast_scroll_inner,
+        text="Adjusts mouse-wheel speed in the Search VnDB results list.",
+        font=FONT_SMALL, text_color=TEXT_MUTED, anchor="w", justify="left",
+    ).pack(anchor="w", pady=(2, 8))
+
+    def _on_fast_scroll_slider(val: float) -> None:
+        units = int(val)
+        fast_scroll_value_label.configure(text=str(units))
+        settings["fast_results_scroll_units"] = units
+        save_data(data)
+
+    fast_scroll_slider = customtkinter.CTkSlider(
+        fast_scroll_inner,
+        from_=10, to=200,
+        number_of_steps=190,
+        command=_on_fast_scroll_slider,
+        progress_color=PINK,
+        button_color=PINK_DARK,
+        button_hover_color=PINK_DARK,
+    )
+    fast_scroll_slider.pack(fill="x", pady=(0, 4))
+
+    saved_fast_scroll = int(settings.get("fast_results_scroll_units", 100))
+    saved_fast_scroll = min(max(saved_fast_scroll, 10), 200)
+    settings["fast_results_scroll_units"] = saved_fast_scroll
+    fast_scroll_slider.set(saved_fast_scroll)
+    fast_scroll_value_label.configure(text=str(saved_fast_scroll))
 
     # ── Accessibility ──────────────────────────────────────────────────────────
     customtkinter.CTkLabel(
