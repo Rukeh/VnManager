@@ -154,9 +154,9 @@ THEMES: dict[str, Theme] = {
 }
 
 DEFAULT_THEME_NAME = "pink"
-MIN_FONT_SCALE = 0.8
-MAX_FONT_SCALE = 1.4
-DEFAULT_FONT_SCALE = 1.0
+MIN_FONT_SCALE = 0.7
+MAX_FONT_SCALE = 1.8
+DEFAULT_FONT_SCALE = 1.2
 
 
 def list_themes() -> tuple[str, ...]:

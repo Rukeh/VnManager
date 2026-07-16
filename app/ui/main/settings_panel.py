@@ -239,7 +239,7 @@ def build_settings(parent, data: dict) -> customtkinter.CTkScrollableFrame:
 
     fast_scroll_slider = customtkinter.CTkSlider(
         fast_scroll_inner,
-        from_=10, to=200,
+        from_=1, to=200,
         number_of_steps=190,
         command=_on_fast_scroll_slider,
         progress_color=PINK,
