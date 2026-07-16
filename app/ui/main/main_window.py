@@ -70,6 +70,18 @@ def run() -> None:
         font=FONT_LOGO, text_color=PINK_DARK,
     ).pack(side="left", padx=(16, 0))
 
+    nav_menu_btn = customtkinter.CTkButton(
+        topbar,
+        text="Menu",
+        font=FONT_BODY,
+        fg_color=PINK,
+        hover_color=PINK_DARK,
+        text_color=WHITE,
+        corner_radius=20,
+        height=34,
+        width=90,
+        command=lambda: show_menu(),
+    )
     nav_library_btn = customtkinter.CTkButton(
         topbar,
         text="Library",
@@ -91,7 +103,7 @@ def run() -> None:
         text_color=PINK_DARK,
         corner_radius=20,
         height=34,
-        width=100,
+        width=90,
         command=lambda: show_settings(),
     )
 
@@ -238,13 +250,17 @@ def run() -> None:
     def _update_nav_buttons() -> None:
         view = _active_view[0]
         if view == "library":
-            nav_library_btn.pack(side="left", padx=(12, 0), pady=10)
+            nav_menu_btn.pack(side="left", padx=(6, 0), pady=10)
+            nav_menu_btn.configure(fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID)
+            nav_library_btn.pack(side="left", padx=(6, 0), pady=10)
             nav_settings_btn.pack(side="left", padx=(6, 0), pady=10)
             nav_library_btn.configure(fg_color=PINK, text_color=WHITE, hover_color=PINK_DARK)
             nav_settings_btn.configure(fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID)
             search_vn_btn.pack(side="right", padx=(0, 8), pady=10)
         elif view == "settings":
-            nav_library_btn.pack(side="left", padx=(12, 0), pady=10)
+            nav_menu_btn.pack(side="left", padx=(6, 0), pady=10)
+            nav_menu_btn.configure(fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID)
+            nav_library_btn.pack(side="left", padx=(6, 0), pady=10)
             nav_settings_btn.pack(side="left", padx=(6, 0), pady=10)
             nav_library_btn.configure(fg_color=PINK_LIGHT, text_color=PINK_DARK, hover_color=PINK_MID)
             nav_settings_btn.configure(fg_color=PINK, text_color=WHITE, hover_color=PINK_DARK)
@@ -253,6 +269,7 @@ def run() -> None:
             nav_library_btn.pack_forget()
             nav_settings_btn.pack_forget()
             search_vn_btn.pack_forget()
+            nav_menu_btn.pack_forget()
 
     def show_menu() -> None:
         library_frame.pack_forget()
